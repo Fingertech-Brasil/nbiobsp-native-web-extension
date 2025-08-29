@@ -50,7 +50,6 @@ int write_message(json j){
 
 json enroll(){
     log_file << "Enroll function called." << std::endl;
-    // Placeholder for enrollment logic
     json res = {
         {"error", 0},
         {"message", "Enrollment completed"},
@@ -64,7 +63,6 @@ json enroll(){
 
 json capture_for_verify(){
     log_file << "Capture and verify function called." << std::endl;
-    // Placeholder for capture and verification logic
     json res = {
         {"error", 0},
         {"message", "Capture completed"},
@@ -82,7 +80,7 @@ int main()
 
     json j = read_message();
 
-    // Define the hashmap for actions
+    // actions hashmap
     std::unordered_map<std::string, std::function<json()>> actions = {
         {"enroll", enroll},
         {"capture", capture_for_verify}
@@ -90,7 +88,7 @@ int main()
 
     std::string action = j["action"];
     json res;
-    // Lookup and execute the action
+    // lookup and execute action
     if (actions.find(action) != actions.end()) {
         res = actions[action]();
     } else {

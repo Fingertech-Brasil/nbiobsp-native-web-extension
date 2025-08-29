@@ -13,10 +13,14 @@ This project aims to provide a streamlined solution for integrating biometric au
 
 ## Running the project
 
-Use the command `g++ native-app/app.cpp -o native-app/native-app.exe` to compile the native app into a `.exe` (requires a gcc compiler like mingw installed)
+To compile the cpp native app in vscode open the Command Palette with `Ctrl+Shift+P` and run `Tasks: Run Build Task` (requires a gcc compiler like mingw installed)
 
-For development, the native app needs to be added to regedit with this command (replace placeholder path with absolute path to native app json on your machine):
+For development, the native app needs to be added to regedit with the following command (replace placeholder path with absolute path to native app json on your machine):
 
-`REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.enbiobsp.simple_biometric_native" /ve /t REG_SZ /d "C:\path\to\nmh-manifest.json" /f`
+```bash
+REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.enbiobsp.simple_biometric_native" /ve /t REG_SZ /d "C:\path\to\nmh-manifest.json" /f
+```
+
+## More documentation
 
 Documentation on Chrome Native Messaging can be found here `https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging`
