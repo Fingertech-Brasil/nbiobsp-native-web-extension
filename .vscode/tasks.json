@@ -13,7 +13,7 @@
         "${fileDirname}\\native-${fileBasenameNoExtension}.exe",
         "-I",
         "C:\\Program Files (x86)\\NITGEN\\eNBSP SDK Professional\\SDK\\include",
-        "C:\\Program Files (x86)\\NITGEN\\eNBSP SDK Professional\\SDK\\Lib\\NBioBSP.lib"
+        "C:\\Program Files (x86)\\NITGEN\\eNBSP SDK Professional\\SDK\\Lib\\x64\\NBioBSP.lib"
       ],
       "group": {
         "kind": "build",
