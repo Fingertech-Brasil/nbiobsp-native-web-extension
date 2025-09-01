@@ -24,3 +24,7 @@ REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.enbiobsp.simple_bi
 ## More documentation
 
 Documentation on Chrome Native Messaging can be found here `https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging`
+
+## VSCode Extension used
+
+Microsoft extension C/C++ for code formatting and intelliSense (settings are in .vscode)

@@ -11,14 +11,15 @@
 using json = nlohmann::json;
 std::ofstream log_file("native_host_log.txt", std::ios_base::app);
 
-json read_message(){
+json read_message()
+{
     unsigned int length = 0;
 
     // read the first four bytes
     for (int i = 0; i < 4; i++)
     {
         unsigned int read_char = getchar();
-        length = length | (read_char << i*8);
+        length = length | (read_char << i * 8);
     }
 
     // read the message from the extension
@@ -31,119 +32,175 @@ json read_message(){
     log_file << "Received message: " << j << std::endl;
 
     return j;
-} 
+}
 
-int write_message(json j){
+int write_message(json j)
+{
     std::string s = j.dump();
     unsigned int len = s.length();
 
     // send back the 4 bytes with the length of the message
-    printf("%c%c%c%c",  (char) (len & 0xff),
-                        (char) (len << 8 & 0xff),
-                        (char) (len << 16 & 0xff),
-                        (char) (len << 24 & 0xff));
-    
+    printf("%c%c%c%c", (char)(len & 0xff),
+           (char)(len >> 8 & 0xff),
+           (char)(len >> 16 & 0xff),
+           (char)(len >> 24 & 0xff));
+
+    log_file << "Sending response: " << s.c_str() << std::endl;
+    log_file << "Response length: " << len << std::endl;
     // output the message
     printf("%s", s.c_str());
 
     return 0;
 }
 
-class NBioModule{
-    private:
-        NBioAPI_HANDLE g_hBSP;
-    public:
-        NBioModule() {
-            initialize();
+class NBioModule
+{
+public:
+    NBioModule()
+    {
+        initialize();
+    }
+
+    ~NBioModule()
+    {
+        terminate();
+    }
+
+    json enum_devices()
+    {
+        NBioAPI_RETURN ret;
+        NBioAPI_UINT32 nDeviceNum;
+        NBioAPI_DEVICE_ID *pDeviceList;
+
+        json res;
+        ret = NBioAPI_EnumerateDevice(g_hBSP, &nDeviceNum, &pDeviceList);
+        if (ret != NBioAPIERROR_NONE)
+        {
+            log_file << "Failed to enumerate devices." << std::endl;
+            res = {
+                {"error", 1},
+                {"message", "Failed to enumerate devices."},
+                {"data", {
+                             {"device-count", 0},
+                         }}};
+        }
+        else
+        {
+            res = {
+                {"error", 0},
+                {"message", "Devices enumerated successfully."},
+                {"data", {
+                             {"device-count", nDeviceNum},
+                         }}};
         }
 
-        ~NBioModule(){
-            terminate();
+        return res;
+    }
+
+    json enroll()
+    {
+        log_file << "Enroll function called." << std::endl;
+        NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+
+        if (ret != NBioAPIERROR_NONE)
+        {
+            log_file << "Failed to open device." << std::endl;
+            json res = {
+                {"error", 1},
+                {"message", "Failed to open device."}};
+            return res;
         }
 
-        void initialize(){
-            if ( NBioAPI_Init(&g_hBSP) != NBioAPIERROR_NONE )
-            { 
-                log_file << "Failed to initialize BSP module." << std::endl;                
-                exit(1);
-            }
-            log_file << "NBioAPI initialized." << std::endl;
-        }
+        NBioAPI_FIR_HANDLE g_hEnrolledFIR;
 
-        json enum_devices(){
-            NBioAPI_RETURN ret;
-            NBioAPI_UINT32 nDeviceNum;
-            NBioAPI_DEVICE_ID *pDeviceList;
+        json res;
 
-            json res;
-            ret = NBioAPI_EnumerateDevice(g_hBSP, &nDeviceNum, &pDeviceList);
-            if (ret != NBioAPIERROR_NONE) {
-                log_file << "Failed to enumerate devices." << std::endl;
-                res = {
-                    {"error", 1},
-                    {"message", "Failed to enumerate devices."},
-                    {"data", {
-                        {"device-count", 0},
-                    }}
-                };
-            }
-            else {
+        // NBioaAPI Enroll
+        ret = NBioAPI_Enroll(g_hBSP, NULL, &g_hEnrolledFIR, NULL, -1, NULL, NULL);
+        if (ret == NBioAPIERROR_NONE)
+        {
+            NBioAPI_FIR_TEXTENCODE g_firText;
+            ret = NBioAPI_GetTextFIRFromHandle(g_hBSP, g_hEnrolledFIR, &g_firText, NBioAPI_FALSE);
+
+            if (ret == NBioAPIERROR_NONE)
+            {
+                std::string template_data = std::string(g_firText.TextFIR);
+
                 res = {
                     {"error", 0},
-                    {"message", "Devices enumerated successfully."},
+                    {"message", "Enrollment successful."},
                     {"data", {
-                        {"device-count", nDeviceNum},
-                    }}
-                };
+                                 {"template", template_data},
+                             }}};
             }
-
-            return res;
+            else
+            {
+                log_file << "Enrollment failed." << std::endl;
+                res = {
+                    {"error", 1},
+                    {"message", "Enrollment failed."}};
+            }
+            NBioAPI_FreeTextFIR(g_hBSP, &g_firText);
+            NBioAPI_FreeFIRHandle(g_hBSP, g_hEnrolledFIR);
         }
-
-        json enroll(){
-            log_file << "Enroll function called." << std::endl;
-            json res = {
-                {"error", 0},
-                {"message", "Enrollment completed"},
-                {"data", {
-                    {"fingers-registered", 1},
-                    {"template", "template_data"}
-                }}
-            };
-            return res;
-        }
-
-        json capture_for_verify(){
-            log_file << "Capture and verify function called." << std::endl;
-            json res = {
-                {"error", 0},
-                {"message", "Capture completed"},
-                {"data", {
-                    {"template", "template_data"}
-                }}
-            };
-            return res;
-        }
-
-        void terminate()
+        else
         {
-            //Free FIR Handle.
-            if (g_hBSP != (NBioAPI_HANDLE)NULL) {
-                NBioAPI_DEVICE_ID deviceID = NBioAPI_GetOpenedDeviceID(g_hBSP);
-
-                //Device Close.
-                if (NBioAPI_DEVICE_ID_NONE != deviceID)
-                    NBioAPI_CloseDevice(g_hBSP, deviceID);
-
-                //NBioAPI Terminate
-                NBioAPI_Terminate(g_hBSP);
-                log_file << "NBioAPI terminated." << std::endl;
-            }
+            log_file << "Enrollment failed." << std::endl;
+            res = {
+                {"error", 1},
+                {"message", "Enrollment failed."}};
         }
+
+        // Close Device
+        NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+
+        return res;
+    }
+
+    json capture_for_verify()
+    {
+        log_file << "Capture and verify function called." << std::endl;
+        json res = {
+            {"error", 0},
+            {"message", "Capture completed"},
+            {"data", {{"template", "template_data"}}}};
+        return res;
+    }
+
+private:
+    NBioAPI_HANDLE g_hBSP;
+
+    void initialize()
+    {
+        if (NBioAPI_Init(&g_hBSP) != NBioAPIERROR_NONE)
+        {
+            log_file << "Failed to initialize BSP module." << std::endl;
+            exit(1);
+        }
+        log_file << "NBioAPI initialized." << std::endl;
+    }
+
+    void terminate()
+    {
+        // Free FIR Handle.
+        if (g_hBSP != (NBioAPI_HANDLE)NULL)
+        {
+            NBioAPI_DEVICE_ID deviceID = NBioAPI_GetOpenedDeviceID(g_hBSP);
+
+            // Device Close.
+            if (NBioAPI_DEVICE_ID_NONE != deviceID)
+                NBioAPI_CloseDevice(g_hBSP, deviceID);
+
+            // NBioAPI Terminate
+            NBioAPI_Terminate(g_hBSP);
+            log_file << "NBioAPI terminated." << std::endl;
+        }
+    }
 };
 
 int main()
 {
+    log_file << "===================================" << std::endl;
     NBioModule nBioModule;
 
     _setmode(_fileno(stdin), _O_BINARY);
@@ -153,24 +210,27 @@ int main()
 
     // actions hashmap
     std::unordered_map<std::string, std::function<json()>> actions = {
-        {"enum", [&]() { return nBioModule.enum_devices(); }},
-        {"enroll", [&]() { return nBioModule.enroll(); }},
-        {"capture", [&]() { return nBioModule.capture_for_verify(); }}
-    };
+        {"enum", [&]()
+         { return nBioModule.enum_devices(); }},
+        {"enroll", [&]()
+         { return nBioModule.enroll(); }},
+        {"capture", [&]()
+         { return nBioModule.capture_for_verify(); }}};
 
     std::string action = j["action"];
     json res;
     // lookup and execute action
-    if (actions.find(action) != actions.end()) {
+    if (actions.find(action) != actions.end())
+    {
         res = actions[action]();
-    } else {
+    }
+    else
+    {
         log_file << "Unknown command received: " << action << std::endl;
         res = {
             {"error", 1},
-            {"message", "Unknown command"}
-        };
+            {"message", "Unknown command"}};
     }
-    
-    log_file << "Sending response: " << res << std::endl;
+
     return write_message(res);
 }
