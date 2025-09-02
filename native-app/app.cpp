@@ -160,10 +160,59 @@ public:
     json capture_for_verify()
     {
         log_file << "Capture and verify function called." << std::endl;
-        json res = {
-            {"error", 0},
-            {"message", "Capture completed"},
-            {"data", {{"template", "template_data"}}}};
+        NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+
+        if (ret != NBioAPIERROR_NONE)
+        {
+            log_file << "Failed to open device." << std::endl;
+            json res = {
+                {"error", 1},
+                {"message", "Failed to open device."}};
+            return res;
+        }
+
+        NBioAPI_FIR_HANDLE g_hCapturedFIR;
+
+        json res;
+
+        // NBioaAPI Enroll
+        ret = NBioAPI_Capture(g_hBSP, NBioAPI_FIR_PURPOSE_VERIFY, &g_hCapturedFIR, 10000, NULL, NULL);
+        if (ret == NBioAPIERROR_NONE)
+        {
+            NBioAPI_FIR_TEXTENCODE g_firText;
+            ret = NBioAPI_GetTextFIRFromHandle(g_hBSP, g_hCapturedFIR, &g_firText, NBioAPI_FALSE);
+
+            if (ret == NBioAPIERROR_NONE)
+            {
+                std::string template_data = std::string(g_firText.TextFIR);
+
+                res = {
+                    {"error", 0},
+                    {"message", "Capture successful."},
+                    {"data", {
+                                 {"template", template_data},
+                             }}};
+            }
+            else
+            {
+                log_file << "Capture failed." << std::endl;
+                res = {
+                    {"error", 1},
+                    {"message", "Capture failed."}};
+            }
+            NBioAPI_FreeTextFIR(g_hBSP, &g_firText);
+            NBioAPI_FreeFIRHandle(g_hBSP, g_hCapturedFIR);
+        }
+        else
+        {
+            log_file << "Capture failed." << std::endl;
+            res = {
+                {"error", 1},
+                {"message", "Capture failed."}};
+        }
+
+        // Close Device
+        NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
         return res;
     }
 

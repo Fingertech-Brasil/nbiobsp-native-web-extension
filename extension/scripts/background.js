@@ -1,7 +1,7 @@
 
 const extensionId = 'com.enbiobsp.simple_biometric_native';
 const jsonMessage = {
-    action: "enroll"
+    action: "capture"
 };
 
 async function sendNativeMessage() {
