@@ -1,7 +1,7 @@
 {
-  "name": "com.enbiobsp.simple_biometric_native",
+  "name": "com.nbiobsp_native_web_ext",
   "description": "Native messaging host for Simple Biometric Extension",
   "path": "native-app.exe",
   "type": "stdio",
-  "allowed_origins": ["chrome-extension://fdbopogacbakijcncajmjebegdcdbfig/"]
+  "allowed_origins": ["chrome-extension://kflokopofiedbahkhhcanmdfgocgpnjb/"]
 }

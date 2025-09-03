@@ -1,6 +1,6 @@
 {
-  "name": "Simple Biometric Extension",
-  "description": "Simple extension for biometric device Fingkey Hamster using eNBioBSP SDK.",
+  "name": "NBioBSP Native Web Extension",
+  "description": "A minimal extension for biometric device Fingkey Hamster using eNBioBSP SDK and native messaging protocol.",
   "version": "1.0",
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,

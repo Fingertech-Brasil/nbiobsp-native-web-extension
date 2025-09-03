@@ -1,6 +1,6 @@
-# Simple Biometric Extension
+# NBioBSP Native Web Extension
 
-A simple extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK for seamless integration (Currently Chrome and Windows only).
+A minimal browser extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK and integrating it via a native application using the native messaging protocol (Currently Chrome and Windows only).
 
 ## Repository Structure
 
@@ -18,8 +18,10 @@ To compile the cpp native app in vscode open the Command Palette with `Ctrl+Shif
 For development, the native app needs to be added to regedit with the following command (replace placeholder path with absolute path to native app json on your machine):
 
 ```bash
-REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.enbiobsp.simple_biometric_native" /ve /t REG_SZ /d "C:\path\to\nmh-manifest.json" /f
+REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web_ext" /ve /t REG_SZ /d "C:\path\to\nmh-manifest.json" /f
 ```
+
+Update chrome extension id on `nativehost-chrome.json` `allowed_origins`
 
 ## More documentation
 

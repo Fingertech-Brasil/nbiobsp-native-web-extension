@@ -1,5 +1,5 @@
 
-const extensionId = 'com.enbiobsp.simple_biometric_native';
+const extensionId = 'com.nbiobsp_native_web_ext';
 const jsonMessage = {
     action: "capture"
 };
