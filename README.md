@@ -33,6 +33,6 @@ Microsoft extension C/C++ for code formatting and intelliSense (settings are in 
 
 ## Deploying
 
-For native apps deploying with extensions it is required to install the app separatelly from the extension
+For native apps deploying with extensions it is required to install the host app separatelly from the extension
 
-To generate a installer compile the script `native-app/make_installer.nsi` with NSIS
+To generate a windows installer compile the script `native-app/make_installer.nsi` with NSIS
