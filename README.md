@@ -1,6 +1,6 @@
 # NBioBSP Native Web Extension
 
-A minimal browser extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK and integrating it via a native application using the native messaging protocol (Currently Chrome and Windows only).
+A minimal web extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK and integrating it via a native application using the native messaging protocol (Currently Chrome and Windows only).
 
 ## Repository Structure
 
@@ -30,3 +30,9 @@ Documentation on Chrome Native Messaging can be found here `https://developer.ch
 ## VSCode Extension used
 
 Microsoft extension C/C++ for code formatting and intelliSense (settings are in .vscode)
+
+## Deploying
+
+For native apps deploying with extensions it is required to install the app separatelly from the extension
+
+To generate a installer compile the script `native-app/make_installer.nsi` with NSIS
