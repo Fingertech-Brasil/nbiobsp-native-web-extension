@@ -3,6 +3,10 @@
 !define PRODUCT_NAME "NBioBSP Extension"
 !define PRODUCT_VERSION "0.1"
 
+; Set icons
+Icon "icon.ico"
+UninstallIcon "icon.ico"
+
 ; The name of the installer program that will be created.
 OutFile "${PRODUCT_NAME} v${PRODUCT_VERSION}.exe"
 
@@ -52,6 +56,7 @@ Section "Uninstall"
   Delete "$INSTDIR\native-app.exe"
   Delete "$INSTDIR\nativehost-chrome.json"
   Delete "$INSTDIR\uninstall.exe"
+  Delete "$INSTDIR\native_host_log.txt"
   
   ; Delete the installation directory.
   RmDir "$INSTDIR"
