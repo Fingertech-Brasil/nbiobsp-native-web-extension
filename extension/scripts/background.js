@@ -4,6 +4,15 @@ const jsonMessage = {
     action: "capture"
 };
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "triggerBackgroundScript") {
+        console.log("Message received from popup. Triggering background script...");
+        sendNativeMessage();
+        sendResponse({ status: "success", message: "Background script triggered!" });
+    }
+    return true;
+});
+
 async function sendNativeMessage() {
     await chrome.runtime.sendNativeMessage(extensionId, jsonMessage, function (res) {
         console.warn("res:", res, "lastError:", chrome.runtime.lastError);
@@ -13,4 +22,3 @@ async function sendNativeMessage() {
     });
 }
 
-sendNativeMessage();
