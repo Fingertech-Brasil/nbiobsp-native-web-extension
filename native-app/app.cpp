@@ -5,7 +5,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include "imports/json.hpp"
 #include <NBioAPI.h>
 
 using json = nlohmann::json;
