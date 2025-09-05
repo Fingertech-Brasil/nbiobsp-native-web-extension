@@ -6,14 +6,14 @@
     {
       "label": "build",
       "type": "shell",
-      "command": "g++",
+      "command": "cmake",
       "args": [
-        "${file}",
-        "-o",
-        "${fileDirname}\\native-${fileBasenameNoExtension}.exe",
-        "-I",
-        "C:\\Program Files (x86)\\NITGEN\\eNBSP SDK Professional\\SDK\\include",
-        "C:\\Program Files (x86)\\NITGEN\\eNBSP SDK Professional\\SDK\\Lib\\x64\\NBioBSP.lib"
+        "--build",
+        "native-app/build",
+        "--config",
+        "Release",
+        "--target",
+        "native-app"
       ],
       "group": {
         "kind": "build",
@@ -22,7 +22,7 @@
       "presentation": {
         "reveal": "always"
       },
-      "problemMatcher": "$gcc"
+      "problemMatcher": []
     }
   ]
 }

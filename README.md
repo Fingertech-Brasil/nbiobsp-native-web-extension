@@ -2,6 +2,12 @@
 
 A minimal web extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK and integrating it via a native application using the native messaging protocol (Currently Chrome and Windows only).
 
+## Development Requirements
+
+- `gcc compiler like mingw`
+- `cmake`
+- `nsis`
+
 ## Repository Structure
 
 This repository is divided into two main components:
@@ -13,7 +19,9 @@ This project aims to provide a streamlined solution for integrating biometric au
 
 ## Running the project
 
-To compile the cpp native app in vscode open the Command Palette with `Ctrl+Shift+P` and run `Tasks: Run Build Task` (requires a gcc compiler like mingw installed)
+Run `cmake -G "Unix Makefiles" -B native-app/build` to set generator and create the build folder where the generator output will go (only need to run once)
+
+To compile the cpp native app in vscode, open the Command Palette with `Ctrl+Shift+P` and run `Tasks: Run Build Task`
 
 For development, the native app needs to be added to regedit with the following command (replace placeholder path with absolute path to native app json on your machine):
 
