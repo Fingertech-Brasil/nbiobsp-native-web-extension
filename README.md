@@ -31,6 +31,8 @@ REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web
 
 Update chrome extension id on `nativehost-chrome.json` `allowed_origins`
 
+**NOTE:** `native-app.exe` should be on the same folder as the native app manifest json
+
 ## More documentation
 
 Documentation on Chrome Native Messaging can be found here `https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging`
