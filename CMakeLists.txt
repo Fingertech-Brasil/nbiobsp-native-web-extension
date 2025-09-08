@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.10)
-project(native_app VERSION 1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.31)
+project(native-app VERSION 1.0 LANGUAGES CXX)
 
 include(FetchContent)
 

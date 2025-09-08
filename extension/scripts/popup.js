@@ -1,19 +1,19 @@
 const devicesDetected = document.querySelector("#devices-detected");
 
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("DOM fully loaded and parsed");
-    let devices = sendMessageToExt("enum");
-    console.log("Connected devices:" + devices);
+    let res = await sendMessageToExt("enum");
+    if (res.status === "success") {
+        let devices = res.data["device-count"];
+        document.querySelector("#devices-detected").innerHTML = "Devices Detected: " + devices;
+    }
 });
 
 const button = document.querySelector("#capture");
-button.addEventListener("click", async () => {
+button.addEventListener("click", () => {
     sendMessageToExt("capture");
 });
 
-function sendMessageToExt(action) {
-    return chrome.runtime.sendMessage({ action: action }, (response) => {
-        console.log("Response from background:", response);
-        return response;
-    });
+async function sendMessageToExt(action) {
+    let res = await chrome.runtime.sendMessage({ action: action });
+    return res;
 }
