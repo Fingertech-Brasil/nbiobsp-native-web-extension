@@ -31,7 +31,7 @@ REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web
 
 Update chrome extension id on `nativehost-chrome.json` `allowed_origins`
 
-**NOTE:** `native-app.exe` should be on the same folder as the native app manifest json
+**NOTE:** for the extension to communicate with the native app, `native-app.exe` should be on the same folder as the native app manifest json
 
 ## More documentation
 
@@ -39,7 +39,7 @@ Documentation on Chrome Native Messaging can be found here `https://developer.ch
 
 ## VSCode Extension used
 
-Microsoft extension C/C++ for code formatting and intelliSense (settings are in .vscode)
+Microsoft extensions `C/C++` for code formatting and intelliSense (settings are in .vscode) and `CMake Tools` for intelliSense and ease of build with cmake
 
 ## Deploying
 
