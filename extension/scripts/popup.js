@@ -1,10 +1,19 @@
-const button = document.querySelector("button");
-button.addEventListener("click", async () => {
-    sendMessageToExt();
+const devicesDetected = document.querySelector("#devices-detected");
+
+document.addEventListener("DOMContentLoaded", async () => {
+    console.log("DOM fully loaded and parsed");
+    let devices = sendMessageToExt("enum");
+    console.log("Connected devices:" + devices);
 });
 
-function sendMessageToExt() {
-    chrome.runtime.sendMessage({ action: "triggerBackgroundScript" }, (response) => {
+const button = document.querySelector("#capture");
+button.addEventListener("click", async () => {
+    sendMessageToExt("capture");
+});
+
+function sendMessageToExt(action) {
+    return chrome.runtime.sendMessage({ action: action }, (response) => {
         console.log("Response from background:", response);
+        return response;
     });
 }
