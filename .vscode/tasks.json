@@ -23,6 +23,25 @@
         "reveal": "always"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "package",
+      "type": "shell",
+      "command": "cpack",
+      "args": [
+        "--config",
+        "native-app/build/CPackConfig.cmake",
+        "-B",
+        "native-app/build"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
     }
   ]
 }
