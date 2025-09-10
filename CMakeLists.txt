@@ -21,9 +21,18 @@ target_link_libraries(native-app PRIVATE
     nlohmann_json::nlohmann_json
 )
 
-# ========================================
+# Copy the native app manifest to the build folder during the build process
+add_custom_command(
+    TARGET native-app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json"
+            "${CMAKE_BINARY_DIR}/nativehost-chrome.json"
+    COMMENT "Copying nativehost-chrome.json to the build folder"
+)
+
+# ================================================
 # CPack configuration for the installer generation
-# ========================================
+# ================================================
 
 install(TARGETS native-app DESTINATION .)
 install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json" DESTINATION .)
@@ -44,9 +53,9 @@ set(CPACK_GENERATOR "NSIS")
 set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION} Installer")
 set(CPACK_NSIS_PACKAGE_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION} Installer")
 set(CPACK_NSIS_WELCOME_TITLE "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION} Installer")
-set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/native-app/icon.ico")
-set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/native-app/icon.ico")
-set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_SOURCE_DIR}/native-app/header.bmp")
+set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
+set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
+set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_SOURCE_DIR}/native-app/resources/header.bmp")
 
 # Pages options
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON) # Ask about uninstalling previous versions before installation
@@ -79,7 +88,7 @@ set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
 # Set installation directory to $LOCALAPPDATA
 set(CPACK_NSIS_INSTALL_ROOT "$LOCALAPPDATA/")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/native-app/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/native-app/resources")
 
 # Include CPack
 include(CPack)

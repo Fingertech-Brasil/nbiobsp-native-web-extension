@@ -25,10 +25,10 @@ To compile the cpp native app in vscode, open the Command Palette with `Ctrl+Shi
 
 Use `Tasks: Run Task` and select `package` to build the installer, the exe will be on `native-app/build/NBioBSP Extension.exe`
 
-To get started using the native-app you can just install the app with the created intaller or, for development, directly add your native app manifest to regedit with the following command (replace placeholder path with absolute path to native app json on your machine):
+To get started using the native-app you can just install the app with the created intaller or, for development, directly add your native app manifest to regedit with the following command (replace placeholder path with absolute path to the native app json on your machine, a copy is created on build folder to allow quicker testing):
 
 ```bash
-REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web_ext" /ve /t REG_SZ /d "C:\path\to\nativehost-chrome.json" /f
+REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web_ext" /ve /t REG_SZ /d "C:\path\to\build\nativehost-chrome.json" /f
 ```
 
 Update chrome extension id on `nativehost-chrome.json` `allowed_origins`, needs to be the same as your extension ID on chrome
