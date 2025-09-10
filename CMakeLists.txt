@@ -41,7 +41,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json" DESTINATIO
 set(CPACK_PACKAGE_NAME "NBioBSP Extension")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Native messaging host for Simple Biometric Extension")
 # needs to be in the form X.Y.Z.W for Windows installers
-set(CPACK_PACKAGE_VERSION "0.1.0.0")
+set(CPACK_PACKAGE_VERSION "1.0.0.0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME} Setup")
 set(CPACK_PACKAGE_VENDOR "${CPACK_PACKAGE_NAME}")
