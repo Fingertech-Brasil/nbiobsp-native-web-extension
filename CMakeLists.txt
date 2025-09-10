@@ -1,12 +1,31 @@
 cmake_minimum_required(VERSION 3.31)
-project(native-app VERSION 1.0 LANGUAGES CXX)
+project(native-app LANGUAGES CXX)
+
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+set(COMPANY_NAME "YoruAlptraum")
+set(FILE_DESCRIPTION "Native messaging host for Simple Biometric Extension")
+set(APP_NAME "NBioBSP Extension")
+set(PRODUCT_NAME "${APP_NAME}")
 
 include(FetchContent)
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-add_executable(native-app native-app/main.cpp)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/native-app/resources/win-res.rc.in
+    ${CMAKE_BINARY_DIR}/native-app/resources/win-res.rc
+)
+
+set(SOURCES ${CMAKE_SOURCE_DIR}/native-app/main.cpp)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    list(APPEND SOURCES ${CMAKE_BINARY_DIR}/native-app/resources/win-res.rc)
+endif()
+
+add_executable(native-app ${SOURCES})
 
 set(NITGEN_SDK_PATH "C:/Program Files (x86)/NITGEN/eNBSP SDK Professional/SDK")
 
@@ -38,13 +57,13 @@ install(TARGETS native-app DESTINATION .)
 install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json" DESTINATION .)
 
 # Set project information
-set(CPACK_PACKAGE_NAME "NBioBSP Extension")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Native messaging host for Simple Biometric Extension")
+set(CPACK_PACKAGE_NAME "${APP_NAME}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${FILE_DESCRIPTION}")
 # needs to be in the form X.Y.Z.W for Windows installers
-set(CPACK_PACKAGE_VERSION "1.0.0.0")
+set(CPACK_PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME} Setup")
-set(CPACK_PACKAGE_VENDOR "${CPACK_PACKAGE_NAME}")
+set(CPACK_PACKAGE_VENDOR "${COMPANY_NAME}")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Specify the generator (NSIS for Windows installers)
@@ -61,15 +80,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
     set(CPACK_NSIS_INSTALLED_ICON_NAME "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
     set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_SOURCE_DIR}/native-app/resources/header.bmp")
-    set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CMAKE_CURRENT_LIST_DIR}/native-app/resources/banner.bmp")
-    set(CPACK_NSIS_MUI_UNWELCOMEFINISHPAGE_BITMAP "${CMAKE_CURRENT_LIST_DIR}/native-app/resources/banner.bmp")
+    set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CMAKE_SOURCE_DIR}/native-app/resources/banner.bmp")
+    set(CPACK_NSIS_MUI_UNWELCOMEFINISHPAGE_BITMAP "${CMAKE_SOURCE_DIR}/native-app/resources/banner.bmp")
     set(CPACK_NSIS_MANIFEST_DPI_AWARE true)
 
     # Pages options
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON) # Ask about uninstalling previous versions before installation
     set(CPACK_NSIS_MODIFY_PATH OFF) # PATH modification not in original script
     
-    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
+    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
 
     # Add registry entries for Add/Remove Programs
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "

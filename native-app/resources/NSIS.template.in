@@ -10,7 +10,7 @@
   VIAddVersionKey "FileVersion" "@CPACK_PACKAGE_VERSION@"
   VIAddVersionKey "ProductVersion" "@CPACK_PACKAGE_VERSION@"
   VIAddVersionKey "CompanyName" "@CPACK_PACKAGE_VENDOR@"
-  VIAddVersionKey "LegalCopyright" "Copyright © 2025 @CPACK_PACKAGE_VENDOR@"
+  VIAddVersionKey "LegalCopyright" "Copyright (C) 2025 @CPACK_PACKAGE_VENDOR@"
   VIAddVersionKey "FileDescription" "Installer for @CPACK_PACKAGE_NAME@"  
 
 ;--------------------------------
