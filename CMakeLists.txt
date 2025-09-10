@@ -93,8 +93,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Add registry entries for Add/Remove Programs
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
         WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                    'DisplayName' '${CPACK_PACKAGE_NAME} ${CPACK_PACKAGE_VERSION}'
-        WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
                     'UninstallString' '$\\\"$INSTDIR\\\\Uninstall.exe$\\\"'
         WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
                     'NoModify' 1
