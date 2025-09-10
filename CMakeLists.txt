@@ -40,55 +40,67 @@ install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json" DESTINATIO
 # Set project information
 set(CPACK_PACKAGE_NAME "NBioBSP Extension")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Native messaging host for Simple Biometric Extension")
-set(CPACK_PACKAGE_VERSION "0.1")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "NBioBSP Extension")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}")
-set(CPACK_PACKAGE_VENDOR "YoruAlptraum")
-set(CPACK_NSIS_BRANDING_TEXT "YoruAlptraum")
+# needs to be in the form X.Y.Z.W for Windows installers
+set(CPACK_PACKAGE_VERSION "0.1.0.0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME} Setup")
+set(CPACK_PACKAGE_VENDOR "${CPACK_PACKAGE_NAME}")
 
-# Specify the generator (NSIS for Windows installers)
-set(CPACK_GENERATOR "NSIS")
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    # Specify the generator (NSIS for Windows installers)
+    set(CPACK_GENERATOR "NSIS")
 
-# NSIS-specific settings
-set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION} Installer")
-set(CPACK_NSIS_PACKAGE_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION} Installer")
-set(CPACK_NSIS_WELCOME_TITLE "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION} Installer")
-set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
-set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
-set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_SOURCE_DIR}/native-app/resources/header.bmp")
+    # NSIS-specific settings
+    set(CPACK_NSIS_BRANDING_TEXT "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
+    set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
+    set(CPACK_NSIS_PACKAGE_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
+    set(CPACK_NSIS_WELCOME_TITLE "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
 
-# Pages options
-set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON) # Ask about uninstalling previous versions before installation
-set(CPACK_NSIS_MODIFY_PATH OFF) # PATH modification not in original script
-set(CPACK_NSIS_IGNORE_LICENSE_PAGE ON) # No license page
+    # Paths to resources
+    set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
+    set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
+    set(CPACK_NSIS_INSTALLED_ICON_NAME "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
+    set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_SOURCE_DIR}/native-app/resources/header.bmp")
+    set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CMAKE_CURRENT_LIST_DIR}/native-app/resources/banner.bmp")
+    set(CPACK_NSIS_MUI_UNWELCOMEFINISHPAGE_BITMAP "${CMAKE_CURRENT_LIST_DIR}/native-app/resources/banner.bmp")
+    set(CPACK_NSIS_MANIFEST_DPI_AWARE true)
 
-# Add registry entries for Add/Remove Programs
-set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-    WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                 'DisplayName' '${CPACK_PACKAGE_NAME} ${CPACK_PACKAGE_VERSION}'
-    WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                 'UninstallString' '$\\\"$INSTDIR\\\\Uninstall.exe$\\\"'
-    WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                  'NoModify' 1
-    WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                  'NoRepair' 1
-    WriteRegStr HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext' '' \
-                 '$INSTDIR\\\\nativehost-chrome.json'
-")
+    # Pages options
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON) # Ask about uninstalling previous versions before installation
+    set(CPACK_NSIS_MODIFY_PATH OFF) # PATH modification not in original script
+    
+    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
 
-# Remove registry entries and files during uninstall
-set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-    DeleteRegKey HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}'
-    DeleteRegKey HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
-    Delete '$INSTDIR\\\\native-app.exe'
-    Delete '$INSTDIR\\\\nativehost-chrome.json'
-    Delete '$INSTDIR\\\\native_host_log.txt'
-")
+    # Add registry entries for Add/Remove Programs
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+        WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
+                    'DisplayName' '${CPACK_PACKAGE_NAME} ${CPACK_PACKAGE_VERSION}'
+        WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
+                    'UninstallString' '$\\\"$INSTDIR\\\\Uninstall.exe$\\\"'
+        WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
+                    'NoModify' 1
+        WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
+                    'NoRepair' 1
+        WriteRegStr HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext' '' \
+                    '$INSTDIR\\\\nativehost-chrome.json'
+    ")
 
-# Set installation directory to $LOCALAPPDATA
-set(CPACK_NSIS_INSTALL_ROOT "$LOCALAPPDATA/")
+    # Remove registry entries and files during uninstall
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+        DeleteRegKey HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}'
+        DeleteRegKey HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
+        Delete '$INSTDIR\\\\native-app.exe'
+        Delete '$INSTDIR\\\\nativehost-chrome.json'
+        Delete '$INSTDIR\\\\native_host_log.txt'
+        Delete '$INSTDIR\\\\uninstall.exe'
+    ")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/native-app/resources")
+    # Set installation directory to $LOCALAPPDATA
+    set(CPACK_NSIS_INSTALL_ROOT "$LOCALAPPDATA/")
+
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/native-app/resources")
+    
+endif()
 
 # Include CPack
 include(CPack)

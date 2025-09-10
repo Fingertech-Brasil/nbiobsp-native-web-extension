@@ -1,8 +1,17 @@
+;--------------------------------
 ; You must define these values
 
   !define VERSION "@CPACK_PACKAGE_VERSION@"
   !define PATCH  "@CPACK_PACKAGE_VERSION_PATCH@"
   !define INST_DIR "@CPACK_TEMPORARY_DIRECTORY@"
+
+  VIProductVersion "@CPACK_PACKAGE_VERSION@"
+  VIAddVersionKey "ProductName" "@CPACK_PACKAGE_NAME@"
+  VIAddVersionKey "FileVersion" "@CPACK_PACKAGE_VERSION@"
+  VIAddVersionKey "ProductVersion" "@CPACK_PACKAGE_VERSION@"
+  VIAddVersionKey "CompanyName" "@CPACK_PACKAGE_VENDOR@"
+  VIAddVersionKey "LegalCopyright" "Copyright © 2025 @CPACK_PACKAGE_VENDOR@"
+  VIAddVersionKey "FileDescription" "Installer for @CPACK_PACKAGE_NAME@"  
 
 ;--------------------------------
 ;Variables
@@ -536,8 +545,7 @@ FunctionEnd
 
   @CPACK_NSIS_LICENSE_PAGE@
   Page custom InstallOptionsPage
-  ;!insertmacro MUI_PAGE_DIRECTORY
-
+  
   @CPACK_NSIS_PAGE_COMPONENTS@
 
   !insertmacro MUI_PAGE_INSTFILES
@@ -692,7 +700,9 @@ Section "-Core installation"
   Push "Contact"
   Push "@CPACK_NSIS_CONTACT@"
   Call ConditionalAddToRegistry
-  !insertmacro MUI_INSTALLOPTIONS_READ $INSTALL_DESKTOP "NSIS.InstallOptions.ini" "Field 5" "State"  
+  !insertmacro MUI_INSTALLOPTIONS_READ $INSTALL_DESKTOP "NSIS.InstallOptions.ini" "Field 5" "State"
+
+@CPACK_NSIS_EXTRA_INSTALL_COMMANDS@
 
 SectionEnd
 
@@ -788,6 +798,75 @@ Section "Uninstall"
   ReadRegStr $INSTALL_DESKTOP SHCTX \
     "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "InstallToDesktop"
   ;MessageBox MB_OK "Install to desktop: $INSTALL_DESKTOP "
+
+  @CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS@
+
+  ;Remove files we installed.
+  ;Keep the list of directories here in sync with the File commands above.
+  @CPACK_NSIS_DELETE_FILES@
+  @CPACK_NSIS_DELETE_DIRECTORIES@
+
+  !ifdef CPACK_NSIS_ADD_REMOVE
+    ;Remove the add/remove program
+    Delete "$INSTDIR\AddRemove.exe"
+  !endif
+
+  ;Remove the uninstaller itself.
+  Delete "$INSTDIR\@CPACK_NSIS_UNINSTALL_NAME@.exe"
+  DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@"
+
+  ;Remove the installation directory if it is empty.
+  RMDir "$INSTDIR"
+
+  ; Remove the registry entries.
+  DeleteRegKey SHCTX "Software\@CPACK_PACKAGE_VENDOR@\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@"
+
+  ; Removes all optional components
+  !insertmacro SectionList "RemoveSection_CPack"
+
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
+
+  Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
+  @CPACK_NSIS_DELETE_ICONS@
+  @CPACK_NSIS_DELETE_ICONS_EXTRA@
+
+  ;Delete empty start menu parent directories
+  StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
+
+  startMenuDeleteLoop:
+    ClearErrors
+    RMDir $MUI_TEMP
+    GetFullPathName $MUI_TEMP "$MUI_TEMP\.."
+
+    IfErrors startMenuDeleteLoopDone
+
+    StrCmp "$MUI_TEMP" "$SMPROGRAMS" startMenuDeleteLoopDone startMenuDeleteLoop
+  startMenuDeleteLoopDone:
+
+  ; If the user changed the shortcut, then uninstall may not work. This should
+  ; try to fix it.
+  Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
+  @CPACK_NSIS_DELETE_ICONS_EXTRA@
+
+  ;Delete empty start menu parent directories
+  StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
+
+  secondStartMenuDeleteLoop:
+    ClearErrors
+    RMDir $MUI_TEMP
+    GetFullPathName $MUI_TEMP "$MUI_TEMP\.."
+
+    IfErrors secondStartMenuDeleteLoopDone
+
+    StrCmp "$MUI_TEMP" "$SMPROGRAMS" secondStartMenuDeleteLoopDone secondStartMenuDeleteLoop
+  secondStartMenuDeleteLoopDone:
+
+  DeleteRegKey /ifempty SHCTX "Software\@CPACK_PACKAGE_VENDOR@\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@"
+
+  Push $INSTDIR\bin
+  StrCmp $DO_NOT_ADD_TO_PATH_ "1" doNotRemoveFromPath 0
+    Call un.RemoveFromPath
+  doNotRemoveFromPath:
 SectionEnd
 
 ;--------------------------------
