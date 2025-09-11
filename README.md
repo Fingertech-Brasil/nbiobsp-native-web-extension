@@ -39,12 +39,6 @@ Update chrome extension id on `nativehost-chrome.json` `allowed_origins`, needs 
 
 Documentation on Chrome Native Messaging can be found here `https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging`
 
-## VSCode Extension used
+## VSCode Extensions used
 
 Microsoft extensions `C/C++` for code formatting and intelliSense (settings are in .vscode) and `CMake Tools` for intelliSense and ease of build with cmake
-
-## Deploying
-
-Native apps deploying with extensions need their own installer.
-
-To generate a windows installer compile the script `native-app/installer_script.nsi` with NSIS
