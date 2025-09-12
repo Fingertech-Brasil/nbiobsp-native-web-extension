@@ -1,4 +1,5 @@
 import { render } from "preact";
+import Button from "../components/Button";
 
 import "../style.css";
 
@@ -15,12 +16,8 @@ export function App() {
         </p>
       </div>
       <section className="flex flex-col gap-3 h-full justify-center">
-        <button id="capture" className="button">
-          Capture
-        </button>
-        <button id="enroll" className="button">
-          Enroll
-        </button>
+        <Button id="capture" text="Capture" />
+        <Button id="enroll" text="Enroll" />
       </section>
     </div>
   );

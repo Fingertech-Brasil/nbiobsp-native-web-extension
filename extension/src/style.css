@@ -1,9 +1,8 @@
 @import "tailwindcss";
+@import "./components/Button/Button.css";
 
 :root {
-	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
-
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
@@ -13,9 +12,5 @@
 
 #app {
 	text-align: center;
-	@apply text-slate-50;
-}
-
-.button {
-	@apply py-1 px-10 border-[#05d7fc] border-2 rounded-md font-semibold transition-all duration-200 hover:shadow-[#05d7fc] hover:shadow-[0px_0px_10px] hover:scale-[102%] cursor-pointer active:scale-[98%] hover:text-shadow-[#05d7fc] hover:bg-radial-[at_50%_95%] from-[#05d7fc]/15 to-transparent;
+	@apply text-slate-50 h-screen;
 }

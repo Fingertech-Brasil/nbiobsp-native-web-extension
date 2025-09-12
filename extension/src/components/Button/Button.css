@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+.button {
+    @apply py-1 px-10 border-[#05d7fc] border-2 rounded-md font-semibold cursor-pointer transition-all duration-200 will-change-transform origin-center relative overflow-hidden h-10 text-base;
+}
+
+.button:hover {
+    @apply shadow-[#05d7fc] shadow-[0px_0px_10px] scale-[102%] text-shadow-[#05d7fc] bg-radial-[at_50%_95%] from-[#05d7fc]/5 to-transparent;
+}
+
+.button:active {
+    @apply scale-[98%];
+}
+
+.button span {
+    @apply my-auto inline-flex -translate-y-9 flex-col gap-3 h-full;
+}
+
+.button:hover span {
+    @apply translate-y-0 transition-transform duration-300;
+}
