@@ -4,9 +4,10 @@ A minimal web extension for the Fingkey Hamster biometric device, utilizing the 
 
 ## Development Requirements
 
-- `gcc compiler like mingw`
-- `cmake`
-- `nsis`
+- `gcc` compiler like `mingw` and `cmake` (build native app)
+- `nsis` (installer)
+- `nodejs` (for extension)
+- `vscode` (not really required but recommended for development)
 
 ## Repository Structure
 
@@ -19,21 +20,26 @@ This project aims to provide a streamlined solution for integrating biometric au
 
 ## Running the project
 
-Run `cmake -G "Unix Makefiles" -B native-app/build` to set generator and create the build folder where the generator output will go (only need to run once)
+### Getting started with the extension
 
-To compile the cpp native app in vscode, open the Command Palette with `Ctrl+Shift+P` and run `Tasks: Run Build Task`
+- Install dependencies with `npm --prefix extension i`
+- Build with `npm --prefix extension run build`
+- On Chrome go to `chrome://extensions/` > activate Developer mode > click `Load unpacked` > select the generated `/extension/dist` folder
+- The extension will show on the extension list and will have a `ID:` followed by the extension ID comprised of random letters, copy the random letters and update the field `allowed_origins` on `native-app/nativehost-chrome.json` replacing the placeholder random string
 
-Use `Tasks: Run Task` and select `package` to build the installer, the exe will be on `native-app/build/NBioBSP Extension.exe`
+### Getting started with the native app
 
-To get started using the native-app you can just install the app with the created intaller or, for development, directly add your native app manifest to regedit with the following command (replace placeholder path with absolute path to the native app json on your machine, a copy is created on build folder to allow quicker testing):
+Before anything open the Command Palette with `Ctrl+Shift+P`, run `Tasks: Run Task` and select option `cmakeGenerate` to set generator and create the build folder where the generator output will go (only need to run once)
+
+To compile the cpp native app and create the installer in vscode, run `Tasks: Run Task` again and select option `buildAndPackage` the installer exe will be on `native-app/build/NBioBSP Extension.exe`
+
+To get started using the native-app you can just install the app with the generated installer or, for development, directly add your native app manifest to regedit with the following command (replace placeholder path with absolute path to the native app json on your machine, you should point it to the copy created on the build folder):
 
 ```bash
 REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web_ext" /ve /t REG_SZ /d "C:\path\to\build\nativehost-chrome.json" /f
 ```
 
-Update chrome extension id on `nativehost-chrome.json` `allowed_origins`, needs to be the same as your extension ID on chrome
-
-**NOTE:** for the extension to communicate with the native app, `native-app.exe` should be on the same folder as the native app manifest json
+**NOTE:** for the extension to communicate with the native app, `native-app.exe` should be where the manifest `path` is pointing to, in this case on the same folder as the manifest json
 
 ## More documentation
 

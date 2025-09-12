@@ -4,6 +4,20 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "cmakeGenerate",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["-G", "Unix Makefiles", "-B", "native-app/build"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "build",
       "type": "shell",
       "command": "cmake",
@@ -42,6 +56,28 @@
         "reveal": "always"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "buildAndPackage",
+      "dependsOn": ["build", "package"],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "cmake",
+      "label": "CMake: build",
+      "command": "build",
+      "targets": ["all"],
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "CMake template build task"
     }
   ]
 }

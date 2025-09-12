@@ -1,7 +1,3 @@
-## Getting started
-
-- `npm i`
-
 ## Base commands
 
 - `npm run dev` - Starts a dev server at http://localhost:5173/
