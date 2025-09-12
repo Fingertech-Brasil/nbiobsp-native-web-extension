@@ -14,6 +14,7 @@ export default defineConfig({
         // HTML entry points
         popup: resolve(__dirname, "src/popup/popup.html"),
         // Non-HTML entry points (content and background scripts)
+        utils: resolve(__dirname, "src/utils.ts"),
         content: resolve(__dirname, "src/content/content.ts"),
         background: resolve(__dirname, "src/background/background.ts"),
       },

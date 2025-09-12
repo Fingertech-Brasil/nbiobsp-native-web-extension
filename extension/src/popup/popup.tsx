@@ -2,6 +2,7 @@ import { render } from "preact";
 import Button from "../components/Button";
 
 import "../style.css";
+import "../utils.js";
 
 export function App() {
   return (

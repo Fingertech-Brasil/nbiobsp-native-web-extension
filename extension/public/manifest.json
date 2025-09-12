@@ -22,7 +22,7 @@
   },
   "content_scripts": [
     {
-      "js": ["scripts/content.js"],
+      "js": ["scripts/content.js", "scripts/utils.js"],
       "matches": ["<all_urls>"]
     }
   ],
