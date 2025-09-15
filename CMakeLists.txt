@@ -74,11 +74,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
     set(CPACK_NSIS_PACKAGE_NAME "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
     set(CPACK_NSIS_WELCOME_TITLE "${CPACK_PACKAGE_NAME} v${CPACK_PACKAGE_VERSION}")
+    set(CPACK_NSIS_INSTALLED_ICON_NAME "native-app.exe")
 
     # Paths to resources
     set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
     set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
-    set(CPACK_NSIS_INSTALLED_ICON_NAME "${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico")
     set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_SOURCE_DIR}/native-app/resources/header.bmp")
     set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CMAKE_SOURCE_DIR}/native-app/resources/banner.bmp")
     set(CPACK_NSIS_MUI_UNWELCOMEFINISHPAGE_BITMAP "${CMAKE_SOURCE_DIR}/native-app/resources/banner.bmp")
@@ -92,19 +92,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     # Add registry entries for Add/Remove Programs
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-        WriteRegStr HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                    'UninstallString' '$\\\"$INSTDIR\\\\Uninstall.exe$\\\"'
-        WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                    'NoModify' 1
-        WriteRegDWORD HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}' \
-                    'NoRepair' 1
         WriteRegStr HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext' '' \
                     '$INSTDIR\\\\nativehost-chrome.json'
     ")
 
     # Remove registry entries and files during uninstall
     set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-        DeleteRegKey HKCU 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\${CPACK_PACKAGE_NAME}'
         DeleteRegKey HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
         Delete '$INSTDIR\\\\native-app.exe'
         Delete '$INSTDIR\\\\nativehost-chrome.json'
