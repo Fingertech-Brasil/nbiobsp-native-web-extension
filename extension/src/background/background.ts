@@ -1,11 +1,18 @@
 const extensionId = "com.nbiobsp_native_web_ext";
 
+let busy: Object = {};
+
 async function sendNativeMessage(action: string) {
   let jsonMessage = {
     action: action,
   };
 
   let data = await new Promise((resolve, reject) => {
+    if (busy[action]) {
+      reject(new Error("Extension is busy processing another request."));
+      return;
+    }
+    busy[action] = true;
     chrome.runtime.sendNativeMessage(extensionId, jsonMessage, function (res) {
       console.warn("res:", res, "lastError:", chrome.runtime.lastError);
       if (!chrome.runtime.lastError) {
@@ -15,6 +22,7 @@ async function sendNativeMessage(action: string) {
       reject(new Error(chrome.runtime.lastError.message));
     });
   });
+  busy[action] = false;
   return data;
 }
 
