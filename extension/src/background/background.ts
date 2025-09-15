@@ -18,7 +18,11 @@ async function sendNativeMessage(action: string) {
   return data;
 }
 
-function callBacker(message, sender, sendResponse: Function) {
+function callBacker(
+  message: any,
+  sender: chrome.runtime.MessageSender,
+  sendResponse: Function
+) {
   (async () => {
     try {
       if (message.action) {
