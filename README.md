@@ -4,6 +4,7 @@ A minimal web extension for the Fingkey Hamster biometric device, utilizing the 
 
 ## Development Requirements
 
+- `eNBioBSP SDK` you can get it from `https://suporte.fingertech.com.br/portal-do-desenvolvedor/`
 - `gcc` compiler like `mingw` and `cmake` (build native app)
 - `nsis` (installer)
 - `nodejs` (for extension)
@@ -40,6 +41,10 @@ REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web
 ```
 
 **NOTE:** for the extension to communicate with the native app, `native-app.exe` should be where the manifest `path` is pointing to, in this case on the same folder as the manifest json
+
+## Testing
+
+Running `npm run dev` and accessing `http://localhost:5173/` will render the index page with samples of how a website will communicate with the extension
 
 ## More documentation
 
