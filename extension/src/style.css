@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./components/Button/Button.css";
+@import "./components/Fader/Fader.css";
 
 :root {
 	line-height: 1.5;

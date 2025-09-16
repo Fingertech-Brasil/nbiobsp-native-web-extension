@@ -1,5 +1,3 @@
-@import "tailwindcss";
-
 .button {
     @apply py-1 px-10 border-[#05d7fc] border-2 rounded-md font-semibold cursor-pointer transition-all duration-200 will-change-transform origin-center relative overflow-hidden h-10 text-base;
 }
@@ -18,4 +16,38 @@
 
 .button:hover span {
     @apply translate-y-0 transition-transform duration-300;
+}
+
+/* HTML: <div class="loader"></div> */
+.loader {
+    margin: auto;
+    width: 30px;
+    aspect-ratio: 1;
+    display: grid;
+    color: #05d7fc;
+    background: radial-gradient(farthest-side, currentColor calc(100% - 6px), #0000 calc(100% - 5px) 0);
+    -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 13px), #000 calc(100% - 12px));
+    border-radius: 50%;
+    animation: l19 2s infinite linear;
+}
+
+.loader::before,
+.loader::after {
+    content: "";
+    grid-area: 1/1;
+    background:
+        linear-gradient(currentColor 0 0) center,
+        linear-gradient(currentColor 0 0) center;
+    background-size: 100% 6px, 6px 100%;
+    background-repeat: no-repeat;
+}
+
+.loader::after {
+    transform: rotate(45deg);
+}
+
+@keyframes l19 {
+    100% {
+        transform: rotate(1turn)
+    }
 }
