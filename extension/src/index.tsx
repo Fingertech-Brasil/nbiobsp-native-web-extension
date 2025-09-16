@@ -8,6 +8,7 @@ export function App() {
   const [isCaptureLoading, setCaptureLoading] = useState(false);
   const [isEnrollLoading, setEnrollLoading] = useState(false);
   const [isEnumLoading, setEnumLoading] = useState(false);
+  const [deviceCount, setDeviceCount] = useState(0);
 
   const extensionId = "klgconhcnhijgogiakodhimlpljalhoi";
 
@@ -29,15 +30,26 @@ export function App() {
       if (response["status"] === "error") {
         console.error("Error from extension:", response["message"]);
         res = "Error: " + response["message"];
-        return;
+      } else {
+        console.log("Response from extension:", response);
+        if (action === "enum") {
+          setDeviceCount(response["data"]["device-count"]);
+          res = "devices detected: " + response["data"]["device-count"];
+        } else {
+          res = "template: " + response["data"]["template"];
+        }
       }
-      console.log("Response from extension:", response);
-      if (action === "enum")
-        res = "devices detected: " + response["data"]["device-count"];
-      else {
-        res = "template: " + response["data"]["template"];
+      switch (action) {
+        case "enum":
+          setEnumLoading(false);
+          break;
+        case "capture":
+          setCaptureLoading(false);
+          break;
+        case "enroll":
+          setEnrollLoading(false);
+          break;
       }
-      alert(res);
     });
     return;
   }
@@ -55,14 +67,17 @@ export function App() {
             text="Enumerate test"
             loading={isEnumLoading}
             onClick={() => {
+              setEnumLoading(true);
               test("enum");
             }}
           />
+          <p>Devices {deviceCount}</p>
           <Button
             id="capture"
             text="Capture test"
             loading={isCaptureLoading}
             onClick={() => {
+              setCaptureLoading(true);
               test("capture");
             }}
           />
@@ -71,6 +86,7 @@ export function App() {
             text="Enroll test"
             loading={isEnrollLoading}
             onClick={() => {
+              setEnrollLoading(true);
               test("enroll");
             }}
           />
