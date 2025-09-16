@@ -9,7 +9,7 @@ import "../utils.js";
 export function App() {
   const [isCaptureLoading, setCaptureLoading] = useState(true);
   const [isEnrollLoading, setEnrollLoading] = useState(true);
-  const [isCheckingDevices, setIsCheckingDevices] = useState(true);
+  const [isEnumLoading, setisEnumLoading] = useState(true);
   const [deviceCount, setDeviceCount] = useState(0);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function App() {
         console.error("Error checking devices:", error);
         setDeviceCount(-1); // Or handle the error appropriately
       } finally {
-        setIsCheckingDevices(false);
+        setisEnumLoading(false);
       }
     };
 
@@ -69,7 +69,7 @@ export function App() {
           (the extension uses the first detected device by default)
         </p>
         <h2 id="devices-detected" className="inline-flex justify-center">
-          {isCheckingDevices ? (
+          {isEnumLoading ? (
             <>
               Checking for devices
               <Fader id="loader-dots" text=" . . . ." />
