@@ -11,11 +11,19 @@
 }
 
 .button span {
-    @apply my-auto inline-flex -translate-y-9 flex-col gap-3 h-full;
+    @apply my-auto inline-flex flex-col gap-3 h-full transition-transform duration-300;
 }
 
-.button:hover span {
-    @apply translate-y-0 transition-transform duration-300;
+.button .not-loading {
+    @apply -translate-y-18;
+}
+
+.button:hover .not-loading {
+    @apply -translate-y-9;
+}
+
+.button:active .not-loading {
+    @apply translate-y-0;
 }
 
 /* HTML: <div class="loader"></div> */
