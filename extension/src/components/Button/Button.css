@@ -11,19 +11,29 @@
 }
 
 .button span {
-    @apply my-auto inline-flex flex-col gap-3 h-full transition-transform duration-300;
+    @apply my-auto inline-flex flex-col gap-3 h-full -translate-y-9 transition-transform !duration-300;
 }
 
 .button .not-loading {
-    @apply -translate-y-18;
-}
-
-.button:hover .not-loading {
     @apply -translate-y-9;
 }
 
-.button:active .not-loading {
+.button:hover .not-loading {
+    animation: text-down 300ms forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button .loading {
     @apply translate-y-0;
+}
+
+@keyframes text-down {
+    0% {
+        transform: translateY(-2.25rem);
+    }
+
+    100% {
+        transform: translateY(0rem);
+    }
 }
 
 /* HTML: <div class="loader"></div> */
