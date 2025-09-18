@@ -9,7 +9,7 @@ import "../style.css";
 import "../utils.js";
 
 export function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [isCaptureLoading, setCaptureLoading] = useState(true);
   const [isEnrollLoading, setEnrollLoading] = useState(true);
@@ -17,11 +17,16 @@ export function App() {
   const [deviceCount, setDeviceCount] = useState(0);
 
   useEffect(() => {
+    i18n.changeLanguage(navigator.language || "en");
     // Function to enumerate devices
     const checkDevices = async () => {
       try {
         let res = await window.sendMessageToExt("enum");
-        if (res.status === "success") {
+        if (
+          res.status === "success" &&
+          res.data["device-count"] !== undefined &&
+          res.data["device-count"] > 0
+        ) {
           setDeviceCount(res.data["device-count"]);
           setCaptureLoading(false);
           setEnrollLoading(false);

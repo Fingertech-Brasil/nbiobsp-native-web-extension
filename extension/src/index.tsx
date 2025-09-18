@@ -1,5 +1,5 @@
 import { render } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import Button from "./components/Button";
 import "./i18n";
 import { useTranslation } from "preact-i18next";
@@ -7,7 +7,11 @@ import { useTranslation } from "preact-i18next";
 import "./style.css";
 
 export function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    i18n.changeLanguage(navigator.language || "en");
+  }, []);
 
   const [isCaptureLoading, setCaptureLoading] = useState(false);
   const [isEnrollLoading, setEnrollLoading] = useState(false);
