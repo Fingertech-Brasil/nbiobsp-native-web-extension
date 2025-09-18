@@ -24,5 +24,9 @@
   },
   "eslintConfig": {
     "extends": "preact"
+  },
+  "dependencies": {
+    "i18next": "^25.5.2",
+    "preact-i18next": "^11.8.5"
   }
 }

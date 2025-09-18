@@ -2,11 +2,15 @@ import { render } from "preact";
 import { useState, useEffect } from "preact/hooks";
 import Button from "../components/Button";
 import Fader from "../components/Fader/index.js";
+import "../i18n";
+import { useTranslation } from "preact-i18next";
 
 import "../style.css";
 import "../utils.js";
 
 export function App() {
+  const { t, i18n } = useTranslation();
+
   const [isCaptureLoading, setCaptureLoading] = useState(true);
   const [isEnrollLoading, setEnrollLoading] = useState(true);
   const [isEnumLoading, setisEnumLoading] = useState(true);
@@ -61,21 +65,23 @@ export function App() {
     <div className="flex flex-col gap-3 justify-between p-5 w-64 bg-[#010016]">
       <div className="flex flex-col gap-3">
         <span>
-          <h1 className="font-bold text-lg">Device Test</h1>
+          <h1 className="font-bold text-lg">{t("popup:title")}</h1>
         </span>
         <p className="text-sm">
-          Click the buttons to test the extension functionalities
+          {t("popup:desc")}
           <br />
-          (the extension uses the first detected device by default)
+          {t("popup:desc2")}
         </p>
         <h2 id="devices-detected" className="inline-flex justify-center">
           {isEnumLoading ? (
             <>
-              Checking for devices
+              {t("popup:checkingDevices")}
               <Fader id="loader-dots" text=" . . . ." />
             </>
           ) : (
-            <>Devices Detected: {deviceCount}</>
+            <>
+              {t("popup:devicesDetected")}: {deviceCount}
+            </>
           )}
         </h2>
       </div>
@@ -85,13 +91,13 @@ export function App() {
       >
         <Button
           id="capture"
-          text="Capture"
+          text={`${t("capture")}`}
           loading={isCaptureLoading}
           onClick={handleCapture}
         />
         <Button
           id="enroll"
-          text="Enroll"
+          text={`${t("enroll")}`}
           loading={isEnrollLoading}
           onClick={handleEnroll}
         />
