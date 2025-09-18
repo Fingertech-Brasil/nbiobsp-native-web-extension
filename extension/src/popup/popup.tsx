@@ -9,7 +9,7 @@ import "../style.css";
 import "../utils.js";
 
 export function App() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [isCaptureLoading, setCaptureLoading] = useState(true);
   const [isEnrollLoading, setEnrollLoading] = useState(true);
@@ -75,12 +75,12 @@ export function App() {
         <h2 id="devices-detected" className="inline-flex justify-center">
           {isEnumLoading ? (
             <>
-              {t("popup:checkingDevices")}
+              {t("checkingDevices")}
               <Fader id="loader-dots" text=" . . . ." />
             </>
           ) : (
             <>
-              {t("popup:devicesDetected")}: {deviceCount}
+              {t("devicesDetected")}: {deviceCount}
             </>
           )}
         </h2>

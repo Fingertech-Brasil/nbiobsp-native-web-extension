@@ -1,4 +1,5 @@
 const extensionId = "com.nbiobsp_native_web_ext";
+import i18next from "../i18n";
 
 let busy: Object = {};
 
@@ -9,7 +10,7 @@ async function sendNativeMessage(action: string) {
 
   let data = await new Promise((resolve, reject) => {
     if (busy[action]) {
-      reject(new Error("Extension is busy processing another request."));
+      reject(new Error(i18next.t("background:busy")));
       return;
     }
     busy[action] = true;
@@ -36,17 +37,20 @@ function callBacker(
       if (message.action) {
         let data = await sendNativeMessage(message.action);
         if (!data) {
-          throw new Error("No data received from native app");
+          throw new Error(i18next.t("background:noDataReceived"));
         }
         console.log("Data from native app:", data);
         sendResponse({
           status: "success",
-          message: "Background script triggered!",
+          message: i18next.t("background:operationSuccessful"),
           data: data,
         });
       } else {
         console.log("No valid action found in the message: ", message);
-        sendResponse({ status: "error", message: "Invalid action" });
+        sendResponse({
+          status: "error",
+          message: i18next.t("background:invalidAction"),
+        });
       }
     } catch (error) {
       console.error("Error in background script:", error);
