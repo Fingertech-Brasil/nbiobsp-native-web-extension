@@ -546,7 +546,8 @@ FunctionEnd
   @CPACK_NSIS_INSTALLER_WELCOME_TITLE_3LINES_CODE@
   !insertmacro MUI_PAGE_WELCOME
 
-  @CPACK_NSIS_LICENSE_PAGE@
+  !insertmacro MUI_PAGE_LICENSE "$(MUILicense)"
+
   Page custom InstallOptionsPage
   
   @CPACK_NSIS_PAGE_COMPONENTS@
@@ -564,6 +565,9 @@ FunctionEnd
 
   !insertmacro MUI_LANGUAGE "English"
   !insertmacro MUI_LANGUAGE "PortugueseBR"
+
+  LicenseLangString MUILicense ${LANG_ENGLISH} "C:\Users\Fingertech\Documents\GitHub\nbiobsp-native-web-extension\LICENSE.txt"
+  LicenseLangString MUILicense ${LANG_PORTUGUESEBR} "C:\Users\Fingertech\Documents\GitHub\nbiobsp-native-web-extension\LICENSE_ptBR.txt"
 
 ;--------------------------------
 ;Reserve Files
