@@ -30,7 +30,7 @@ This project aims to provide a streamlined solution for integrating biometric au
 
 ### Getting started with the native app
 
-Before anything open the Command Palette with `Ctrl+Shift+P`, run `Tasks: Run Task` and select option `cmakeGenerate` to set generator and create the build folder where the generator output will go (only need to run once)
+Before anything, open the Command Palette with `Ctrl+Shift+P`, run `Tasks: Run Task` and select option `cmakeGenerate` to set generator and create the build folder where the generator output will go (only need to run once)
 
 To compile the cpp native app and create the installer in vscode, run `Tasks: Run Task` again and select option `buildAndPackage` the installer exe will be on `native-app/build/NBioBSP Extension.exe`
 

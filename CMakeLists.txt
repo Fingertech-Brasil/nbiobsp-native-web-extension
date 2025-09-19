@@ -14,29 +14,52 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-configure_file(
-    ${CMAKE_SOURCE_DIR}/native-app/resources/win-res.rc.in
-    ${CMAKE_BINARY_DIR}/native-app/resources/win-res.rc
-)
-
 set(SOURCES ${CMAKE_SOURCE_DIR}/native-app/main.cpp)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    list(APPEND SOURCES ${CMAKE_BINARY_DIR}/native-app/resources/win-res.rc)
+    set(NITGEN_SDK_PATH "C:/Program Files (x86)/NITGEN/eNBSP SDK Professional/SDK")
+    file(TO_CMAKE_PATH "${NITGEN_SDK_PATH}/include" NITGEN_SDK_INCLUDE)
+    file(TO_CMAKE_PATH "${NITGEN_SDK_PATH}/Lib/x64/NBioBSP.lib" NBIOBSP_LIB)
+
+    set(RC_TEMPLATE ${CMAKE_SOURCE_DIR}/native-app/resources/win-res.rc.in)
+    set(RC_OUTPUT ${CMAKE_BINARY_DIR}/native-app/resources/win-res.rc)
+    
+    configure_file(
+        ${RC_TEMPLATE}
+        ${RC_OUTPUT}
+    )
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico
+        ${CMAKE_BINARY_DIR}/native-app/resources/icon.ico
+        COPYONLY
+    )
+    
+    set(RC_OBJ ${CMAKE_BINARY_DIR}/CMakeFiles/native-app.dir/native-app/resources/win-res.rc.obj)
+    
+    add_custom_command(
+        OUTPUT ${RC_OBJ}
+        COMMAND ${CMAKE_RC_COMPILER} -O coff
+                -i ${RC_OUTPUT}
+                -o ${RC_OBJ}
+        DEPENDS ${RC_OUTPUT}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/native-app/resources
+        COMMENT "Compiling resource file win-res.rc (excluding NITGEN SDK paths)"
+    )
+    
+    # Append the compiled resource object (not the raw .rc) to SOURCES
+    list(APPEND SOURCES ${RC_OBJ})
 endif()
 
 add_executable(native-app ${SOURCES})
 
-set(NITGEN_SDK_PATH "C:/Program Files (x86)/NITGEN/eNBSP SDK Professional/SDK")
-
 # Adds the include directory for header files (-I flag)
 target_include_directories(native-app PRIVATE
-    "${NITGEN_SDK_PATH}/include"
+    "${NITGEN_SDK_INCLUDE}"
 )
 
 # Links the specific library file
 target_link_libraries(native-app PRIVATE
-    "${NITGEN_SDK_PATH}/Lib/x64/NBioBSP.lib"
+    "${NBIOBSP_LIB}"
     nlohmann_json::nlohmann_json
 )
 
@@ -88,8 +111,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON) # Ask about uninstalling previous versions before installation
     set(CPACK_NSIS_MODIFY_PATH OFF) # PATH modification not in original script
     
-    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
-
     # Add registry entries for Add/Remove Programs
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
         WriteRegStr HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext' '' \
