@@ -8,6 +8,8 @@ set(COMPANY_NAME "YoruAlptraum")
 set(FILE_DESCRIPTION "Native messaging host for Simple Biometric Extension")
 set(APP_NAME "NBioBSP Extension")
 set(PRODUCT_NAME "${APP_NAME}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
+set(CPACK_RESOURCE_FILE_LICENSE_PTBR "${CMAKE_SOURCE_DIR}/LICENSE_ptBR.txt")
 
 include(FetchContent)
 
@@ -17,6 +19,7 @@ FetchContent_MakeAvailable(json)
 set(SOURCES ${CMAKE_SOURCE_DIR}/native-app/main.cpp)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(CPACK_NSIS_ENABLE_UNICODE ON)
     set(NITGEN_SDK_PATH "C:/Program Files (x86)/NITGEN/eNBSP SDK Professional/SDK")
     file(TO_CMAKE_PATH "${NITGEN_SDK_PATH}/include" NITGEN_SDK_INCLUDE)
     file(TO_CMAKE_PATH "${NITGEN_SDK_PATH}/Lib/x64/NBioBSP.lib" NBIOBSP_LIB)
@@ -28,6 +31,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         ${RC_TEMPLATE}
         ${RC_OUTPUT}
     )
+    
     configure_file(
         ${CMAKE_SOURCE_DIR}/native-app/resources/icon.ico
         ${CMAKE_BINARY_DIR}/native-app/resources/icon.ico

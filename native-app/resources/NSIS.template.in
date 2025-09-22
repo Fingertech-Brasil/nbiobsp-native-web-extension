@@ -566,8 +566,8 @@ FunctionEnd
   !insertmacro MUI_LANGUAGE "English"
   !insertmacro MUI_LANGUAGE "PortugueseBR"
 
-  LicenseLangString MUILicense ${LANG_ENGLISH} "C:\Users\Fingertech\Documents\GitHub\nbiobsp-native-web-extension\LICENSE.txt"
-  LicenseLangString MUILicense ${LANG_PORTUGUESEBR} "C:\Users\Fingertech\Documents\GitHub\nbiobsp-native-web-extension\LICENSE_ptBR.txt"
+  LicenseLangString MUILicense ${LANG_ENGLISH} "@CPACK_RESOURCE_FILE_LICENSE@"
+  LicenseLangString MUILicense ${LANG_PORTUGUESEBR} "@CPACK_RESOURCE_FILE_LICENSE_PTBR@"
 
 ;--------------------------------
 ;Reserve Files

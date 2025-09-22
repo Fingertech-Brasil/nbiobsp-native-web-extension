@@ -4,7 +4,7 @@ A minimal web extension for the Fingkey Hamster biometric device, utilizing the 
 
 ## Development Requirements
 
-- `eNBioBSP SDK` you can get it from `https://suporte.fingertech.com.br/portal-do-desenvolvedor/`
+- `eNBioBSP SDK` you can get the latest version from `https://suporte.fingertech.com.br/portal-do-desenvolvedor/`
 - `gcc` compiler like `mingw` and `cmake` (build native app)
 - `nsis` (installer)
 - `nodejs` (for extension)
