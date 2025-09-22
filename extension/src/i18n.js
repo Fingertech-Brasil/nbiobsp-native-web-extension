@@ -22,6 +22,7 @@ i18next.use(initReactI18next).init({
         noDataReceived: "No data received from native app",
         invalidAction: "Invalid action",
         operationSuccessful: "Background script triggered",
+        installPrompt: "Please install the NBioBSP Extension Setup",
       },
       common: {
         checkingDevices: "Checking for devices",
@@ -48,6 +49,7 @@ i18next.use(initReactI18next).init({
         noDataReceived: "Nenhum dado recebido do aplicativo nativo",
         invalidAction: "Ação inválida",
         operationSuccessful: "Script de fundo acionado",
+        installPrompt: "Por favor, instale o Setup Extensão NBioBSP",
       },
       common: {
         checkingDevices: "Verificando dispositivos",

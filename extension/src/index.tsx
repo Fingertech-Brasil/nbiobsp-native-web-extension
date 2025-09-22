@@ -38,7 +38,7 @@ export function App() {
       let res = "";
       if (response["status"] === "error") {
         res = response["message"];
-        console.error("Error from extension:", response["message"]);
+        console.error("Error from extension:", res);
       } else {
         console.log("Response from extension:", response);
         if (action === "enum") {

@@ -15,7 +15,6 @@ async function sendNativeMessage(action: string) {
     }
     busy[action] = true;
     chrome.runtime.sendNativeMessage(extensionId, jsonMessage, function (res) {
-      console.warn("res:", res, "lastError:", chrome.runtime.lastError);
       if (!chrome.runtime.lastError) {
         resolve(res["data"]);
         return;
@@ -54,6 +53,12 @@ function callBacker(
       }
     } catch (error) {
       console.error("Error in background script:", error);
+      if (error.message.includes("host not found")) {
+        alertActiveTab(
+          `${i18next.t("background:installPrompt")}`,
+          "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip"
+        );
+      }
       sendResponse({ status: "error", message: error.message });
     }
   })();
@@ -65,3 +70,12 @@ chrome.runtime.onMessage.addListener(callBacker);
 
 // Listener for messages from the website
 chrome.runtime.onMessageExternal.addListener(callBacker);
+
+function alertActiveTab(text: string, url: string) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (tabId != null) {
+      chrome.tabs.sendMessage(tabId, { type: "ALERT", text, url });
+    }
+  });
+}
