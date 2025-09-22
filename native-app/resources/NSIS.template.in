@@ -1,6 +1,7 @@
 !include "MUI2.nsh"
 !include "nsDialogs.nsh"
 !include InstallOptions.nsh
+
 ;--------------------------------
 ; You must define these values
 
@@ -29,7 +30,7 @@
 ;--------------------------------
 ;Include Modern UI
 
-  !include "MUI.nsh"
+  ;!include "MUI.nsh"
 
   ;Default installation folder
   InstallDir "@CPACK_NSIS_INSTALL_ROOT@\@CPACK_PACKAGE_INSTALL_DIRECTORY@"
