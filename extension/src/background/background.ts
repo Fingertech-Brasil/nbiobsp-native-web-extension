@@ -19,6 +19,7 @@ async function sendNativeMessage(action: string) {
         resolve(res["data"]);
         return;
       }
+      busy[action] = false;
       reject(new Error(chrome.runtime.lastError.message));
     });
   });
