@@ -34,7 +34,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         COPYONLY
     )
     
-    set(RC_OBJ ${CMAKE_BINARY_DIR}/CMakeFiles/native-app.dir/native-app/resources/win-res.rc.obj)
+    set(RC_OBJ ${CMAKE_BINARY_DIR}/win-res.rc.obj)
     
     add_custom_command(
         OUTPUT ${RC_OBJ}
