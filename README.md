@@ -53,3 +53,9 @@ Documentation on Chrome Native Messaging can be found here `https://developer.ch
 ## VSCode Extensions used
 
 Microsoft extensions `C/C++` for code formatting and intelliSense (settings are in .vscode) and `CMake Tools` for intelliSense and ease of build with cmake
+
+## Channel corruption
+
+If the stdio channels receive unexpected data, such as debugging information from devices, they will corrupt the communication channel with Native Messaging, and the extension will return the error message: `Error when communicating with the native messaging host.`
+
+Run `./resources/CheckStdIO.ps1` to view the data the Native Host attempts to send back to the browser extension. The expected output is `{"data":{"device-count":1},"error":0,"message":"Devices enumerated successfully."}` and nothing else.
