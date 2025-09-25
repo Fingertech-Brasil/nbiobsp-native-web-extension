@@ -15,6 +15,7 @@ export function App() {
   const [isEnrollLoading, setEnrollLoading] = useState(true);
   const [isEnumLoading, setisEnumLoading] = useState(true);
   const [deviceCount, setDeviceCount] = useState(0);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     i18n.changeLanguage(navigator.language || "en");
@@ -44,25 +45,35 @@ export function App() {
 
   const handleCapture = async () => {
     setCaptureLoading(true);
+    let res: any;
+    let message = "";
     try {
-      await window.sendMessageToExt("capture");
-      // Handle success response if needed
+      res = await window.sendMessageToExt("capture");
+      if (res.status !== "success") throw new Error(res.message);
+      message = "Template: " + res.data.template;
     } catch (error) {
       console.error("Capture failed:", error);
+      message = t("popup:captureFail");
     } finally {
       setCaptureLoading(false);
+      setMessage(message);
     }
   };
 
   const handleEnroll = async () => {
     setEnrollLoading(true);
+    let res: any;
+    let message = "";
     try {
-      await window.sendMessageToExt("enroll");
-      // Handle success response if needed
+      res = await window.sendMessageToExt("enroll");
+      if (res.status !== "success") throw new Error(res.message);
+      message = "Template: " + res.data.template;
     } catch (error) {
       console.error("Enroll failed:", error);
+      message = t("popup:enrollFail");
     } finally {
       setEnrollLoading(false);
+      setMessage(message);
     }
   };
 
@@ -107,6 +118,7 @@ export function App() {
           onClick={handleEnroll}
         />
       </section>
+      <p className="overflow-hidden text-ellipsis text-nowrap">{message}</p>
     </div>
   );
 }

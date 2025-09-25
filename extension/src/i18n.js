@@ -12,6 +12,8 @@ i18next.use(initReactI18next).init({
         title: "NBioBSP Web Extension",
         desc: "Click the buttons to test the extension functionalities",
         desc2: "(the extension uses the first detected device by default)",
+        captureFail: "Capture failed",
+        enrollFail: "Enroll failed",
       },
       index: {
         title: "Sample Page",
@@ -40,6 +42,8 @@ i18next.use(initReactI18next).init({
         title: "Extensão Web NBioBSP",
         desc: "Clique os botões para testar as funcionalidades da extensão",
         desc2: "(a extensão usa o primeiro dispositivo detectado por padrão)",
+        captureFail: "Falha na captura",
+        enrollFail: "Falha no registro",
       },
       index: {
         title: "Página de Exemplo",
