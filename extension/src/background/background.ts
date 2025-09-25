@@ -3,9 +3,10 @@ import i18next from "../i18n";
 
 let busy: Object = {};
 
-async function sendNativeMessage(action: string) {
+async function sendNativeMessage(action: string, body: any) {
   let jsonMessage = {
     action: action,
+    body: body || {},
   };
 
   let data = await new Promise((resolve, reject) => {
@@ -35,7 +36,7 @@ function callBacker(
   (async () => {
     try {
       if (message.action) {
-        let data = await sendNativeMessage(message.action);
+        let data = await sendNativeMessage(message.action, message.body ?? {});
         if (!data) {
           throw new Error(i18next.t("background:noDataReceived"));
         }

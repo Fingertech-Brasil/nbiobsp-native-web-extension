@@ -159,7 +159,7 @@ public:
 
     json capture_for_verify()
     {
-        log_file << "Capture and verify function called." << std::endl;
+        log_file << "Capture for verify function called." << std::endl;
         NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
 
         if (ret != NBioAPIERROR_NONE)
@@ -171,11 +171,10 @@ public:
             return res;
         }
 
-        NBioAPI_FIR_HANDLE g_hCapturedFIR;
-
         json res;
 
         // NBioaAPI Enroll
+        NBioAPI_FIR_HANDLE g_hCapturedFIR;
         ret = NBioAPI_Capture(g_hBSP, NBioAPI_FIR_PURPOSE_VERIFY, &g_hCapturedFIR, 10000, NULL, NULL);
         if (ret == NBioAPIERROR_NONE)
         {
@@ -212,6 +211,53 @@ public:
         }
 
         // Close Device
+        NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        return res;
+    }
+
+    json verify(const json body)
+    {
+        json res;
+        std::string template_data = body["template"];
+        log_file << "Verify function called." << std::endl;
+        log_file << "Template data: " << template_data << std::endl;
+        
+        NBioAPI_FIR_TEXTENCODE textFir = {NBioAPI_FALSE, template_data.data()};
+        NBioAPI_INPUT_FIR inputFir;
+        inputFir.Form = NBioAPI_FIR_FORM_TEXTENCODE;
+        inputFir.InputFIR.TextFIR = &textFir;
+        NBioAPI_BOOL result;
+
+        NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+
+        if (ret != NBioAPIERROR_NONE)
+        {
+            log_file << "Failed to open device." << std::endl;
+            json res = {
+                {"error", 1},
+                {"message", "Failed to open device."}};
+            return res;
+        }
+
+        ret = NBioAPI_Verify(g_hBSP, &inputFir, &result, NULL, 10000, NULL, NULL);
+        if (ret == NBioAPIERROR_NONE)
+        {
+            res = {
+                {"error", 0},
+                {"message", "Verification successful."},
+                {"data", {
+                             {"result", result ? "0" : "1"},
+                         }}
+            };
+        }
+        else
+        {
+            log_file << "Verification failed." << std::endl;
+            res = {
+                {"error", 1},
+                {"message", "Verification failed."}};
+        }
+
         NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
         return res;
     }
@@ -264,7 +310,9 @@ int main()
         {"enroll", [&]()
          { return nBioModule.enroll(); }},
         {"capture", [&]()
-         { return nBioModule.capture_for_verify(); }}};
+         { return nBioModule.capture_for_verify(); }},
+        {"verify", [&]()
+         { return nBioModule.verify(j["body"]); }}};
 
     std::string action = j["action"];
     json res;

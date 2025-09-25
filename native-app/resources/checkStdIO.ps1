@@ -20,7 +20,7 @@ function Invoke-NativeMessage($exePath, $jsonText) {
   $p.StandardInput.BaseStream.Write($len, 0, 4)
   $p.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length)
   $p.StandardInput.Flush()
-  $p.StandardInput.Close()  # signal EOF so the app can respond and exit
+  $p.StandardInput.Close() # signal EOF so the app can respond and exit
 
   # Read response length
   $lenBuf = New-Object byte[] 4

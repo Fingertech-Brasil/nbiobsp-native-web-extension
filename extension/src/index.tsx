@@ -16,7 +16,9 @@ export function App() {
   const [isCaptureLoading, setCaptureLoading] = useState(false);
   const [isEnrollLoading, setEnrollLoading] = useState(false);
   const [isEnumLoading, setEnumLoading] = useState(false);
+  const [isVerifyLoading, setVerifyLoading] = useState(false);
   const [deviceCount, setDeviceCount] = useState(0);
+  const [template, setTemplate] = useState("");
   const [message, setMessage] = useState("");
 
   const extensionId = "klgconhcnhijgogiakodhimlpljalhoi";
@@ -33,34 +35,51 @@ export function App() {
     });
   }
 
-  async function test(action: string) {
-    sendMessageToExtension({ action: action }, (response: Object) => {
-      let res = "";
-      if (response["status"] === "error") {
-        res = response["message"];
-        console.error("Error from extension:", res);
-      } else {
-        console.log("Response from extension:", response);
-        if (action === "enum") {
-          res = `${t("devicesDetected")}: ${response["data"]["device-count"]}`;
-          setDeviceCount(response["data"]["device-count"]);
+  function switchActionLoading(action: string, state: boolean) {
+    switch (action) {
+      case "enum":
+        setEnumLoading(state);
+        break;
+      case "capture":
+        setCaptureLoading(state);
+        break;
+      case "enroll":
+        setEnrollLoading(state);
+        break;
+      case "verify":
+        setVerifyLoading(state);
+        break;
+    }
+  }
+
+  async function test(action: string, body: Object = {}) {
+    sendMessageToExtension(
+      { action: action, body: body },
+      (response: Object) => {
+        let res = "";
+        if (response["status"] === "error") {
+          console.error("Error from extension:", res);
+          res = response["message"];
         } else {
-          res = `Template: ${response["data"]["template"]}`;
+          console.log("Response from extension:", response);
+          if (response["data"]["device-count"]) {
+            res = `${t("devicesDetected")}: ${
+              response["data"]["device-count"]
+            }`;
+            setDeviceCount(response["data"]["device-count"]);
+          } else if (response["data"]["template"]) {
+            res = "Template generated.";
+            setTemplate(response["data"]["template"] || "");
+          } else {
+            res = response["data"]["result"]
+              ? "Verification successful."
+              : "Verification failed.";
+          }
         }
+        setMessage(res);
+        switchActionLoading(action, false);
       }
-      setMessage(res);
-      switch (action) {
-        case "enum":
-          setEnumLoading(false);
-          break;
-        case "capture":
-          setCaptureLoading(false);
-          break;
-        case "enroll":
-          setEnrollLoading(false);
-          break;
-      }
-    });
+    );
     return;
   }
 
@@ -98,6 +117,20 @@ export function App() {
             onClick={() => {
               setEnrollLoading(true);
               test("enroll");
+            }}
+          />
+          <p className="overflow-hidden text-ellipsis text-nowrap">
+            Template: {template}
+          </p>
+          <Button
+            id="verify"
+            text={`${t("test")} ${t("verify")}`}
+            loading={isVerifyLoading}
+            onClick={() => {
+              setVerifyLoading(true);
+              test("verify", {
+                template: template,
+              });
             }}
           />
         </div>

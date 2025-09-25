@@ -27,9 +27,10 @@ i18next.use(initReactI18next).init({
       common: {
         checkingDevices: "Checking for devices",
         devicesDetected: "Devices detected",
+        enum: "Enumerate",
         capture: "Capture",
         enroll: "Enroll",
-        enum: "Enumerate",
+        verify: "Verify",
         devices: "Devices",
         test: "Test",
       },
@@ -54,9 +55,10 @@ i18next.use(initReactI18next).init({
       common: {
         checkingDevices: "Verificando dispositivos",
         devicesDetected: "Dispositivos detectados",
+        enum: "Enumeração",
         capture: "Captura",
         enroll: "Registro",
-        enum: "Enumeração",
+        verify: "Verificação",
         devices: "Dispositivos",
         test: "Testar",
       },
