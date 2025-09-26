@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/postcss";
 import { resolve } from "path";
 
 export default defineConfig({
+  cacheDir: resolve(__dirname, "node_modules/.vite"),
   plugins: [preact()],
   css: {
     postcss: {
@@ -14,7 +15,7 @@ export default defineConfig({
   server: {
     fs: {
       // allow importing from sibling workspace (../shared)
-      allow: [__dirname, resolve(__dirname, "..")],
+      allow: [__dirname, resolve(__dirname, "..", "shared")],
     },
   },
   build: {
