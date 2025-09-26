@@ -1,5 +1,4 @@
 const extensionId = "com.nbiobsp_native_web_ext";
-import i18next from "../i18n";
 
 let busy: Object = {};
 
@@ -11,7 +10,7 @@ async function sendNativeMessage(action: string, body: any) {
 
   let data = await new Promise((resolve, reject) => {
     if (busy[action]) {
-      reject(new Error(i18next.t("background:busy")));
+      reject(new Error(chrome.i18n.getMessage("background_busy")));
       return;
     }
     busy[action] = true;
@@ -38,26 +37,26 @@ function callBacker(
       if (message.action) {
         let data = await sendNativeMessage(message.action, message.body ?? {});
         if (!data) {
-          throw new Error(i18next.t("background:noDataReceived"));
+          throw new Error(chrome.i18n.getMessage("background_noDataReceived"));
         }
         console.log("Data from native app:", data);
         sendResponse({
           status: "success",
-          message: i18next.t("background:operationSuccessful"),
+          message: chrome.i18n.getMessage("background_operationSuccessful"),
           data: data,
         });
       } else {
         console.log("No valid action found in the message: ", message);
         sendResponse({
           status: "error",
-          message: i18next.t("background:invalidAction"),
+          message: chrome.i18n.getMessage("background_invalidAction"),
         });
       }
     } catch (error) {
       console.error("Error in background script:", error);
       if (error.message.includes("host not found")) {
         alertActiveTab(
-          `${i18next.t("background:installPrompt")}`,
+          `${chrome.i18n.getMessage("background_installPrompt")}`,
           "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip"
         );
       }

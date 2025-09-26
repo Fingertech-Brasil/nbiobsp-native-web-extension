@@ -1,10 +1,10 @@
 import { render } from "preact";
 import { useState, useEffect } from "preact/hooks";
-import Button from "./components/Button";
+import { Button } from "@nbiobsp-native-web-extension/shared";
 import "./i18n";
 import { useTranslation } from "preact-i18next";
 
-import "./style.css";
+import "@nbiobsp-native-web-extension/shared/styles";
 
 export function App() {
   const { t, i18n } = useTranslation();
@@ -21,7 +21,7 @@ export function App() {
   const [template, setTemplate] = useState("");
   const [message, setMessage] = useState("");
 
-  const extensionId = "klgconhcnhijgogiakodhimlpljalhoi";
+  const extensionId = "jjcedadiabhchhpecgpklkdfbdajlmak";
 
   // Send a message to the extension
   function sendMessageToExtension(message: Object, callback: Function) {
@@ -140,4 +140,4 @@ export function App() {
   );
 }
 
-render(<App />, document.getElementById("app"));
+render(<App />, document.getElementById("app")!);

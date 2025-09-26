@@ -1,16 +1,11 @@
 import { render } from "preact";
 import { useState, useEffect } from "preact/hooks";
-import Button from "../components/Button";
-import Fader from "../components/Fader/index.js";
-import "../i18n";
-import { useTranslation } from "preact-i18next";
+import { Button, Fader } from "@nbiobsp-native-web-extension/shared";
+import "@nbiobsp-native-web-extension/shared/styles";
 
-import "../style.css";
 import "../utils.js";
 
 export function App() {
-  const { t, i18n } = useTranslation();
-
   const [isCaptureLoading, setCaptureLoading] = useState(true);
   const [isEnrollLoading, setEnrollLoading] = useState(true);
   const [isEnumLoading, setisEnumLoading] = useState(true);
@@ -18,7 +13,6 @@ export function App() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    i18n.changeLanguage(navigator.language || "en");
     // Function to enumerate devices
     const checkDevices = async () => {
       try {
@@ -53,7 +47,7 @@ export function App() {
       message = "Template: " + res.data.template;
     } catch (error) {
       console.error("Capture failed:", error);
-      message = t("popup:captureFail");
+      message = chrome.i18n.getMessage("popup_captureFail");
     } finally {
       setCaptureLoading(false);
       setMessage(message);
@@ -70,7 +64,7 @@ export function App() {
       message = "Template: " + res.data.template;
     } catch (error) {
       console.error("Enroll failed:", error);
-      message = t("popup:enrollFail");
+      message = chrome.i18n.getMessage("popup_enrollFail");
     } finally {
       setEnrollLoading(false);
       setMessage(message);
@@ -81,22 +75,24 @@ export function App() {
     <div className="flex flex-col gap-3 justify-between p-5 w-64 bg-[#010016]">
       <div className="flex flex-col gap-3">
         <span>
-          <h1 className="font-bold text-lg">{t("popup:title")}</h1>
+          <h1 className="font-bold text-lg">
+            {chrome.i18n.getMessage("extName")}
+          </h1>
         </span>
         <p className="text-sm">
-          {t("popup:desc")}
+          {chrome.i18n.getMessage("popup_desc")}
           <br />
-          {t("popup:desc2")}
+          {chrome.i18n.getMessage("popup_desc2")}
         </p>
         <h2 id="devices-detected" className="inline-flex justify-center">
           {isEnumLoading ? (
             <>
-              {t("checkingDevices")}
+              {chrome.i18n.getMessage("checkingDevices")}
               <Fader id="loader-dots" text=" . . . ." />
             </>
           ) : (
             <>
-              {t("devicesDetected")}: {deviceCount}
+              {chrome.i18n.getMessage("devicesDetected")}: {deviceCount}
             </>
           )}
         </h2>
@@ -107,13 +103,13 @@ export function App() {
       >
         <Button
           id="capture"
-          text={`${t("capture")}`}
+          text={`${chrome.i18n.getMessage("capture")}`}
           loading={isCaptureLoading}
           onClick={handleCapture}
         />
         <Button
           id="enroll"
-          text={`${t("enroll")}`}
+          text={`${chrome.i18n.getMessage("enroll")}`}
           loading={isEnrollLoading}
           onClick={handleEnroll}
         />

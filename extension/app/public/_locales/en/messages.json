@@ -1,0 +1,38 @@
+{
+  "extName": {
+    "message": "NBioBSP Native Web Extension",
+    "description": "Extension name"
+  },
+  "extDesc": {
+    "message": "A minimal extension for biometric device Fingkey Hamster using eNBioBSP SDK and native messaging protocol.",
+    "description": "Extension description"
+  },
+  "popup_title": { "message": "NBioBSP Web Extension" },
+  "popup_desc": {
+    "message": "Click the buttons to test the extension functionalities"
+  },
+  "popup_desc2": {
+    "message": "(the extension uses the first detected device by default)"
+  },
+  "popup_captureFail": { "message": "Capture failed" },
+  "popup_enrollFail": { "message": "Enroll failed" },
+  "background_busy": { "message": "Busy with another request" },
+  "background_noDataReceived": {
+    "message": "No data received from native app"
+  },
+  "background_invalidAction": { "message": "Invalid action" },
+  "background_operationSuccessful": {
+    "message": "Background script triggered"
+  },
+  "background_installPrompt": {
+    "message": "Please install the NBioBSP Extension Setup"
+  },
+  "checkingDevices": { "message": "Checking for devices" },
+  "devicesDetected": { "message": "Devices detected" },
+  "enum": { "message": "Enumerate" },
+  "capture": { "message": "Capture" },
+  "enroll": { "message": "Enroll" },
+  "verify": { "message": "Verify" },
+  "devices": { "message": "Devices" },
+  "test": { "message": "Test" }
+}
