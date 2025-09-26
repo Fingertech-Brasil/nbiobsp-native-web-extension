@@ -1,10 +1,16 @@
 {
+  "name": "nbiobsp-native-web-extension",
   "private": true,
+  "workspaces": [
+    "extension/*"
+  ],
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build:app": "npm run build -w @nbiobsp-native-web-extension/app",
+    "build:sample": "npm run build -w @nbiobsp-native-web-extension/sample",
+    "build:all": "npm run build:app && npm run build:sample",
+    "dev": "npm run dev -w @nbiobsp-native-web-extension/sample",
+    "preview": "npm run preview -w @nbiobsp-native-web-extension/sample"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",
@@ -24,9 +30,5 @@
   },
   "eslintConfig": {
     "extends": "preact"
-  },
-  "dependencies": {
-    "i18next": "^25.5.2",
-    "preact-i18next": "^11.8.5"
   }
 }

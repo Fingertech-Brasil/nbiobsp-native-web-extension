@@ -11,7 +11,7 @@
 }
 
 .button span {
-    @apply my-auto inline-flex flex-col gap-3 h-full -translate-y-18 transition-transform duration-300;
+    @apply my-auto inline-flex flex-col gap-3 h-full -translate-y-19 transition-transform duration-300;
 }
 
 .button span p:nth-child(2) {
@@ -20,11 +20,11 @@
 }
 
 .button .not-loading {
-    @apply -translate-y-18;
+    @apply -translate-y-19;
 }
 
 .button:hover .not-loading {
-    @apply -translate-y-9;
+    @apply -translate-y-10;
 }
 
 .button .loading {

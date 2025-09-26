@@ -3,5 +3,5 @@
   "description": "Native messaging host for Simple Biometric Extension",
   "path": "native-app.exe",
   "type": "stdio",
-  "allowed_origins": ["chrome-extension://klgconhcnhijgogiakodhimlpljalhoi/"]
+  "allowed_origins": ["chrome-extension://jjcedadiabhchhpecgpklkdfbdajlmak/"]
 }

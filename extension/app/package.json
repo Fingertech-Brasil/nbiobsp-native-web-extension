@@ -1,0 +1,9 @@
+{
+  "name": "@nbiobsp-native-web-extension/app",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@nbiobsp-native-web-extension/shared": "*"
+  }
+}

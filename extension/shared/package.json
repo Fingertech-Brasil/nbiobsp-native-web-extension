@@ -1,0 +1,9 @@
+{
+  "name": "@nbiobsp-native-web-extension/shared",
+  "version": "0.1.0",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./styles": "./src/style.css"
+  }
+}
