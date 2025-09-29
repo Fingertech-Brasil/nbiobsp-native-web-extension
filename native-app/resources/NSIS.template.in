@@ -596,6 +596,10 @@ Section "-Core installation"
   @CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS@
   @CPACK_NSIS_FULL_INSTALL@
 
+  ${If} $LANGUAGE != ${LANG_PORTUGUESEBR}
+    Delete "$INSTDIR\NBSP2Por.dll"
+  ${EndIf}
+
   ;Store installation folder
   WriteRegStr SHCTX "Software\@CPACK_PACKAGE_VENDOR@\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "" $INSTDIR
 
@@ -666,7 +670,7 @@ FunctionEnd
 ;--------------------------------
 ; determine admin versus local install
 Function un.onInit
-ReadRegDWORD $LANGUAGE HKLM "Software\${CPACK_NSIS_DISPLAY_NAME}" "Language"
+  ReadRegDWORD $LANGUAGE HKLM "Software\${CPACK_NSIS_DISPLAY_NAME}" "Language"
   ; If no language is found, fall back to a default (e.g., English)
   ${If} $LANGUAGE == 0
     StrCpy $LANGUAGE ${LANG_ENGLISH}

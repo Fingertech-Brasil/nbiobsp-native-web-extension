@@ -81,6 +81,7 @@ add_custom_command(
 
 install(TARGETS native-app DESTINATION .)
 install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json" DESTINATION .)
+install(FILES "${CMAKE_SOURCE_DIR}/native-app/resources/NBSP2Por.dll" DESTINATION .)
 
 # Set project information
 set(CPACK_PACKAGE_NAME "${APP_NAME}")
@@ -125,6 +126,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         DeleteRegKey HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
         Delete '$INSTDIR\\\\native-app.exe'
         Delete '$INSTDIR\\\\nativehost-chrome.json'
+        Delete '$INSTDIR\\\\NBSP2Por.dll'
         Delete '$INSTDIR\\\\native_host_log.txt'
         Delete '$INSTDIR\\\\uninstall.exe'
     ")

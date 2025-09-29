@@ -221,7 +221,7 @@ public:
         std::string template_data = body["template"];
         log_file << "Verify function called." << std::endl;
         log_file << "Template data: " << template_data << std::endl;
-        
+
         NBioAPI_FIR_TEXTENCODE textFir = {NBioAPI_FALSE, template_data.data()};
         NBioAPI_INPUT_FIR inputFir;
         inputFir.Form = NBioAPI_FIR_FORM_TEXTENCODE;
@@ -247,8 +247,7 @@ public:
                 {"message", "Verification successful."},
                 {"data", {
                              {"result", result ? "0" : "1"},
-                         }}
-            };
+                         }}};
         }
         else
         {
@@ -272,6 +271,9 @@ private:
             log_file << "Failed to initialize BSP module." << std::endl;
             exit(1);
         }
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+        NBioAPI_BOOL bRet = NBioAPI_SetSkinResource("./NBSP2Por.dll");
+#endif
         log_file << "NBioAPI initialized." << std::endl;
     }
 
