@@ -24,8 +24,11 @@
   "background_operationSuccessful": {
     "message": "Script de fundo acionado"
   },
+  "background_operationFailed": {
+    "message": "A operação falhou"
+  },
   "background_installPrompt": {
-    "message": "Por favor, instale o Setup Extensão NBioBSP"
+    "message": "Clique para baixar, depois instale o Setup Extensão NBioBSP"
   },
   "checkingDevices": { "message": "Verificando dispositivos" },
   "devicesDetected": { "message": "Dispositivos detectados" },

@@ -22,13 +22,7 @@
     "type": "module"
   },
   "externally_connectable": {
-    "matches": ["*://localhost/*", "*://*/*"]
+    "matches": ["*://localhost/*", "https://*/*", "http://*/*"]
   },
-  "content_scripts": [
-    {
-      "js": ["scripts/content.js", "scripts/utils.js"],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "permissions": ["nativeMessaging", "storage"]
+  "permissions": ["nativeMessaging", "activeTab", "scripting"]
 }

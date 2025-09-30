@@ -24,8 +24,11 @@
   "background_operationSuccessful": {
     "message": "Background script triggered"
   },
+  "background_operationFailed": {
+    "message": "The operation failed"
+  },
   "background_installPrompt": {
-    "message": "Please install the NBioBSP Extension Setup"
+    "message": "Click to download, then install the NBioBSP Extension Setup"
   },
   "checkingDevices": { "message": "Checking for devices" },
   "devicesDetected": { "message": "Devices detected" },

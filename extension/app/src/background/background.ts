@@ -54,13 +54,27 @@ function callBacker(
       }
     } catch (error) {
       console.error("Error in background script:", error);
-      if (error.message.includes("host not found")) {
-        alertActiveTab(
-          `${chrome.i18n.getMessage("background_installPrompt")}`,
-          "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip"
-        );
+      if (error.message.includes("host")) {
+        let url =
+          "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip";
+        if (sender.tab?.id) {
+          chrome.scripting.executeScript({
+            target: { tabId: sender.tab!.id! },
+            func: alertActiveTab,
+            args: [chrome.i18n.getMessage("background_installPrompt"), url],
+          });
+        } else {
+          sendResponse({
+            status: "error",
+            message: chrome.i18n.getMessage("background_installPrompt"),
+            url: url,
+          });
+        }
       }
-      sendResponse({ status: "error", message: error.message });
+      sendResponse({
+        status: "error",
+        message: chrome.i18n.getMessage("background_operationFailed"),
+      });
     }
   })();
   return true;
@@ -73,10 +87,31 @@ chrome.runtime.onMessage.addListener(callBacker);
 chrome.runtime.onMessageExternal.addListener(callBacker);
 
 function alertActiveTab(text: string, url: string) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tabId = tabs[0]?.id;
-    if (tabId != null) {
-      chrome.tabs.sendMessage(tabId, { type: "ALERT", text, url });
-    }
-  });
+  const box = document.createElement("div");
+  box.style.cssText = [
+    "position: absolute",
+    "left: calc(50vw - 200px)",
+    "top: 16px",
+    "z-index: 999999",
+    "background: #111",
+    "padding: 12px 14px",
+    "text-align: center",
+    "border-radius: 8px",
+    "box-shadow: 0 6px 20px rgba(0,0,0,.35)",
+    "width: 400px",
+  ].join(";");
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = text;
+  link.style.cssText =
+    "color:#05d7fc;text-decoration:underline;word-break:break-word";
+  const close = document.createElement("button");
+  close.textContent = "×";
+  close.style.cssText =
+    "margin-left:8px;background:transparent;border:0;color:#aaa;cursor:pointer;font-size:16px";
+  close.onclick = () => box.remove();
+  box.append(" ", link, " ", close);
+  document.documentElement.appendChild(box);
 }

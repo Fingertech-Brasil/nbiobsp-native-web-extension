@@ -9,7 +9,9 @@ export function App() {
   const [isCaptureLoading, setCaptureLoading] = useState(true);
   const [isEnrollLoading, setEnrollLoading] = useState(true);
   const [isEnumLoading, setisEnumLoading] = useState(true);
+  const [hostInstalled, setHostInstalled] = useState(true);
   const [deviceCount, setDeviceCount] = useState(0);
+  const [installUrl, setinstallUrl] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -17,8 +19,13 @@ export function App() {
     const checkDevices = async () => {
       try {
         let res = await window.sendMessageToExt("enum");
-        if (
-          res.status === "success" &&
+        if (res.status !== "success") {
+          console.log("Enumeration failed:", res.message);
+          setDeviceCount(-1);
+          setHostInstalled(false);
+          setMessage(res.message);
+          setinstallUrl(res.url || "");
+        } else if (
           res.data["device-count"] !== undefined &&
           res.data["device-count"] > 0
         ) {
@@ -97,24 +104,33 @@ export function App() {
           )}
         </h2>
       </div>
-      <section
-        id="buttons"
-        className="flex flex-col gap-3 h-full justify-center"
-      >
-        <Button
-          id="capture"
-          text={`${chrome.i18n.getMessage("capture")}`}
-          loading={isCaptureLoading}
-          onClick={handleCapture}
-        />
-        <Button
-          id="enroll"
-          text={`${chrome.i18n.getMessage("enroll")}`}
-          loading={isEnrollLoading}
-          onClick={handleEnroll}
-        />
-      </section>
-      <p className="overflow-hidden text-ellipsis text-nowrap">{message}</p>
+      <div>
+        <section
+          id="buttons"
+          className="flex flex-col gap-3 h-full justify-center"
+        >
+          <Button
+            id="capture"
+            text={`${chrome.i18n.getMessage("capture")}`}
+            loading={isCaptureLoading}
+            onClick={handleCapture}
+          />
+          <Button
+            id="enroll"
+            text={`${chrome.i18n.getMessage("enroll")}`}
+            loading={isEnrollLoading}
+            onClick={handleEnroll}
+          />
+        </section>
+      </div>
+      {hostInstalled && (
+        <p className="overflow-hidden text-ellipsis text-nowrap">{message}</p>
+      )}
+      {!hostInstalled && (
+        <a href={installUrl} className="underline text-blue-600">
+          {message}
+        </a>
+      )}
     </div>
   );
 }
