@@ -34,6 +34,18 @@ function callBacker(
 ) {
   (async () => {
     try {
+      if (sender.tab?.url) {
+        const origin = new URL(sender.tab.url).origin + "/*";
+        console.log("Requesting permission for origin:", origin);
+        chrome.permissions.request({ origins: [origin] }, (granted) => {
+          if (!granted) {
+            throw new Error(
+              chrome.i18n.getMessage("background_permissionDenied")
+            );
+          }
+        });
+      }
+
       if (message.action) {
         let data = await sendNativeMessage(message.action, message.body ?? {});
         if (!data) {
@@ -80,11 +92,7 @@ function callBacker(
   return true;
 }
 
-// Listener for messages from the popup
 chrome.runtime.onMessage.addListener(callBacker);
-
-// Listener for messages from the website
-chrome.runtime.onMessageExternal.addListener(callBacker);
 
 function alertActiveTab(text: string, url: string) {
   const box = document.createElement("div");
