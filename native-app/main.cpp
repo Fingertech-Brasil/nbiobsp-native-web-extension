@@ -272,7 +272,25 @@ private:
             exit(1);
         }
 #if defined(_WIN32) && !defined(_WIN32_WCE)
-        NBioAPI_BOOL bRet = NBioAPI_SetSkinResource("./NBSP2Por.dll");
+        std::filesystem::path dllPath;
+        {
+            wchar_t modulePath[MAX_PATH]{};
+            GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+            std::filesystem::path exeDir = std::filesystem::path(modulePath).parent_path();
+            dllPath = exeDir / L"NBSP2Por.dll";
+        }
+
+        log_file << "Current working dir: " << std::filesystem::current_path().string() << std::endl;
+        log_file << "Expected skin DLL path: " << dllPath.string() << std::endl;
+
+        if (!std::filesystem::exists(dllPath))
+        {
+            log_file << "Skin DLL not found." << std::endl;
+        }
+        else
+        {
+            NBioAPI_BOOL bRet = NBioAPI_SetSkinResource(dllPath.string().c_str());
+        }
 #endif
         log_file << "NBioAPI initialized." << std::endl;
     }
