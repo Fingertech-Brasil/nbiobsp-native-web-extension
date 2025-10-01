@@ -115,12 +115,34 @@ export function App() {
 
   return (
     <div className="flex flex-col gap-3 justify-between p-5 w-64 bg-[#010016]">
+      <div>
+        <h1 className="font-bold text-lg">
+          {chrome.i18n.getMessage("extName")}
+        </h1>
+      </div>
+
+      <div className="flex flex-col gap-3 justify-between">
+        <p className="text-sm">
+          {chrome.i18n.getMessage("popup_permissionDesc")}
+        </p>
+        <Button
+          id="add"
+          text={
+            originAllowed
+              ? chrome.i18n.getMessage("popup_revoke")
+              : chrome.i18n.getMessage("popup_grant")
+          }
+          loading={originLoading}
+          onClick={toggleOrigin}
+        />
+        <p className="text-sm">
+          {chrome.i18n.getMessage("popup_permissionDesc2")}
+        </p>
+      </div>
+
+      <hr />
+
       <div className="flex flex-col gap-3">
-        <span>
-          <h1 className="font-bold text-lg">
-            {chrome.i18n.getMessage("extName")}
-          </h1>
-        </span>
         <p className="text-sm">
           {chrome.i18n.getMessage("popup_desc")}
           <br />
@@ -160,19 +182,6 @@ export function App() {
           {message}
         </a>
       )}
-
-      <p>{chrome.i18n.getMessage("popup_permissionDesc")}</p>
-      <Button
-        id="add"
-        text={
-          originAllowed
-            ? chrome.i18n.getMessage("popup_revoke")
-            : chrome.i18n.getMessage("popup_grant")
-        }
-        loading={originLoading}
-        onClick={toggleOrigin}
-      />
-      <p>{chrome.i18n.getMessage("popup_permissionDesc2")}</p>
     </div>
   );
 }
