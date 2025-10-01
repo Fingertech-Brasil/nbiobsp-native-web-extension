@@ -1,6 +1,28 @@
 .language-ts {
     text-align: left;
     color: #ff79c6;
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* WebKit browsers */
+.language-ts::-webkit-scrollbar {
+    width: 8px;
+}
+
+.language-ts::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.language-ts::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
+}
+
+/* Firefox */
+.language-ts {
+    scrollbar-width: thin;
+    scrollbar-color: #666 transparent;
 }
 
 .comment {
