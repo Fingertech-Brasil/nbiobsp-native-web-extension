@@ -135,7 +135,7 @@ async function injectBridge(tabId: number) {
     target: { tabId },
     func: () => {
       console.log("Injecting bridge script...");
-      const messageHandler = (event: MessageEvent) => {
+      (window as any).messageHandler = (event: MessageEvent) => {
         if (
           event.source !== window ||
           event.origin !== window.location.origin ||
@@ -162,8 +162,49 @@ async function injectBridge(tabId: number) {
           }
         );
       };
-      window.removeEventListener("message", messageHandler);
-      window.addEventListener("message", messageHandler);
+      window.addEventListener("message", (window as any).messageHandler);
     },
   });
 }
+
+chrome.permissions.onAdded.addListener(async ({ origins, permissions }) => {
+  console.log("Permissions added:", { origins, permissions });
+  if (!origins?.length) return;
+
+  // Reload active tab if its origin was revoked
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  if (!tab?.id || !tab.url) return;
+
+  const originPattern = new URL(tab.url).origin + "/*";
+  if (origins.includes(originPattern)) {
+    try {
+      await chrome.tabs.reload(tab.id, { bypassCache: false });
+    } catch (e) {
+      console.warn("Failed to reload tab:", e);
+    }
+  }
+});
+
+chrome.permissions.onRemoved.addListener(async ({ origins, permissions }) => {
+  console.log("Permissions removed:", { origins, permissions });
+  if (!origins?.length) return;
+
+  // Reload active tab if its origin was revoked
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  if (!tab?.id || !tab.url) return;
+
+  const originPattern = new URL(tab.url).origin + "/*";
+  if (origins.includes(originPattern)) {
+    try {
+      await chrome.tabs.reload(tab.id, { bypassCache: false });
+    } catch (e) {
+      console.warn("Failed to reload tab:", e);
+    }
+  }
+});

@@ -17,7 +17,7 @@
   "popup_captureFail": { "message": "Capture failed" },
   "popup_enrollFail": { "message": "Enroll failed" },
   "popup_permissionDesc": {
-    "message": "This extension requires explicit permission to run on a website. Click the button below to grant or revoke the permission."
+    "message": "This extension requires explicit permission to run on a website. Click the button below to grant or revoke the permission on this website."
   },
   "popup_permissionDesc2": {
     "message": "Refresh the page after changing the permission."

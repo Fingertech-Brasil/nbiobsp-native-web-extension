@@ -156,7 +156,7 @@ export function App() {
         <p className="overflow-hidden text-ellipsis text-nowrap">{message}</p>
       )}
       {!hostInstalled && (
-        <a href={installUrl} className="underline text-blue-600">
+        <a href={installUrl} className="underline text-[#05d7fc]">
           {message}
         </a>
       )}
