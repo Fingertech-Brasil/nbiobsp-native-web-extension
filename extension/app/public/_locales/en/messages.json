@@ -20,7 +20,7 @@
     "message": "This extension requires explicit permission to run on a website. Click the button below to grant or revoke the permission on this website."
   },
   "popup_permissionDesc2": {
-    "message": "Refresh the page after changing the permission."
+    "message": "The page will be refreshed after changing the permission."
   },
   "popup_grant": {
     "message": "Grant"

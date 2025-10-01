@@ -20,7 +20,7 @@
     "message": "Esta extensão requer permissão explícita para ser executada em um website. Clique no botão abaixo para conceder ou revogar a permissão neste website."
   },
   "popup_permissionDesc2": {
-    "message": "Atualize a página após alterar a permissão."
+    "message": "A página será atualizada após a alteração da permissão."
   },
   "popup_grant": {
     "message": "Conceder"

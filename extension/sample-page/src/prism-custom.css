@@ -1,0 +1,29 @@
+.language-ts {
+    text-align: left;
+    color: #ff79c6;
+}
+
+.comment {
+    color: #566db6;
+    font-style: italic;
+}
+
+.function {
+    color: #05d7fc;
+}
+
+.keyword {
+    color: #f4f819;
+}
+
+.punctuation {
+    color: #ff0090;
+}
+
+.operator {
+    color: #f4f819;
+}
+
+.string {
+    color: #c47f00;
+}
