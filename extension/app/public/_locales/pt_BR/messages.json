@@ -16,6 +16,18 @@
   },
   "popup_captureFail": { "message": "Falha na captura" },
   "popup_enrollFail": { "message": "Falha no registro" },
+  "popup_permissionDesc": {
+    "message": "Esta extensão requer permissão explícita para ser executada em um website. Clique no botão abaixo para conceder ou revogar a permissão."
+  },
+  "popup_permissionDesc2": {
+    "message": "Atualize a página após alterar a permissão."
+  },
+  "popup_grant": {
+    "message": "Conceder"
+  },
+  "popup_revoke": {
+    "message": "Revogar"
+  },
   "background_busy": { "message": "Ocupado com outra solicitação" },
   "background_noDataReceived": {
     "message": "Nenhum dado recebido do aplicativo nativo"

@@ -7,12 +7,26 @@ import "../utils.js";
 
 export function App() {
   const [isCaptureLoading, setCaptureLoading] = useState(true);
-  const [isEnrollLoading, setEnrollLoading] = useState(true);
   const [isEnumLoading, setisEnumLoading] = useState(true);
   const [hostInstalled, setHostInstalled] = useState(true);
   const [deviceCount, setDeviceCount] = useState(0);
   const [installUrl, setinstallUrl] = useState("");
   const [message, setMessage] = useState("");
+
+  const [originAllowed, setOriginAllowed] = useState(false);
+  const [originLoading, setOriginLoading] = useState(true);
+
+  async function getActiveOrigin(): Promise<string | undefined> {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true,
+    });
+    const url = tab?.url;
+    if (!url) return;
+    const u = new URL(url);
+    if (!/^https?:$/.test(u.protocol)) return; // skip chrome://, file://, etc.
+    return `${u.origin}/*`;
+  }
 
   useEffect(() => {
     // Function to enumerate devices
@@ -31,7 +45,6 @@ export function App() {
         ) {
           setDeviceCount(res.data["device-count"]);
           setCaptureLoading(false);
-          setEnrollLoading(false);
         }
       } catch (error) {
         console.error("Error checking devices:", error);
@@ -43,6 +56,20 @@ export function App() {
 
     checkDevices();
   }, []); // The empty array [] ensures this effect runs only once
+
+  useEffect(() => {
+    (async () => {
+      setOriginLoading(true);
+      try {
+        const origin = await getActiveOrigin();
+        if (!origin) return setOriginAllowed(false);
+        const has = await chrome.permissions.contains({ origins: [origin] });
+        setOriginAllowed(has);
+      } finally {
+        setOriginLoading(false);
+      }
+    })();
+  }, []);
 
   const handleCapture = async () => {
     setCaptureLoading(true);
@@ -61,20 +88,28 @@ export function App() {
     }
   };
 
-  const handleEnroll = async () => {
-    setEnrollLoading(true);
-    let res: any;
-    let message = "";
+  const toggleOrigin = async () => {
+    let res: boolean;
+    setOriginLoading(true);
     try {
-      res = await window.sendMessageToExt("enroll");
-      if (res.status !== "success") throw new Error(res.message);
-      message = "Template: " + res.data.template;
-    } catch (error) {
-      console.error("Enroll failed:", error);
-      message = chrome.i18n.getMessage("popup_enrollFail");
+      const origin = await getActiveOrigin();
+      if (!origin) return;
+      if (originAllowed) {
+        res = await chrome.permissions.remove({
+          permissions: ["scripting"],
+          origins: [origin],
+        });
+      } else {
+        res = await chrome.permissions.request({
+          permissions: ["scripting"],
+          origins: [origin],
+        });
+      }
+      let perms = await chrome.permissions.getAll();
+      console.log("Current permissions:", perms);
+      if (res) setOriginAllowed(!originAllowed);
     } finally {
-      setEnrollLoading(false);
-      setMessage(message);
+      setOriginLoading(false);
     }
   };
 
@@ -115,12 +150,6 @@ export function App() {
             loading={isCaptureLoading}
             onClick={handleCapture}
           />
-          <Button
-            id="enroll"
-            text={`${chrome.i18n.getMessage("enroll")}`}
-            loading={isEnrollLoading}
-            onClick={handleEnroll}
-          />
         </section>
       </div>
       {hostInstalled && (
@@ -131,6 +160,19 @@ export function App() {
           {message}
         </a>
       )}
+
+      <p>{chrome.i18n.getMessage("popup_permissionDesc")}</p>
+      <Button
+        id="add"
+        text={
+          originAllowed
+            ? chrome.i18n.getMessage("popup_revoke")
+            : chrome.i18n.getMessage("popup_grant")
+        }
+        loading={originLoading}
+        onClick={toggleOrigin}
+      />
+      <p>{chrome.i18n.getMessage("popup_permissionDesc2")}</p>
     </div>
   );
 }

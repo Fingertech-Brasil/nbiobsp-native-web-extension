@@ -11,8 +11,8 @@ export function App() {
 
   const [isCaptureLoading, setCaptureLoading] = useState(false);
   const [isEnrollLoading, setEnrollLoading] = useState(false);
-  const [isEnumLoading, setEnumLoading] = useState(false);
   const [isVerifyLoading, setVerifyLoading] = useState(false);
+  const [isEnumLoading, setEnumLoading] = useState(false);
   const [deviceCount, setDeviceCount] = useState(0);
   const [template, setTemplate] = useState("");
   const [message, setMessage] = useState("");

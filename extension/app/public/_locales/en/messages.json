@@ -16,6 +16,18 @@
   },
   "popup_captureFail": { "message": "Capture failed" },
   "popup_enrollFail": { "message": "Enroll failed" },
+  "popup_permissionDesc": {
+    "message": "This extension requires explicit permission to run on a website. Click the button below to grant or revoke the permission."
+  },
+  "popup_permissionDesc2": {
+    "message": "Refresh the page after changing the permission."
+  },
+  "popup_grant": {
+    "message": "Grant"
+  },
+  "popup_revoke": {
+    "message": "Revoke"
+  },
   "background_busy": { "message": "Busy with another request" },
   "background_noDataReceived": {
     "message": "No data received from native app"

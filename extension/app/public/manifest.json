@@ -22,12 +22,6 @@
     "type": "module"
   },
   "optional_permissions": ["scripting"],
-  "optional_host_permissions": ["*://127.0.0.1/*", "*://localhost/*"],
-  "content_scripts": [
-    {
-      "js": ["scripts/content.js", "scripts/utils.js"],
-      "matches": ["*://127.0.0.1/*", "*://localhost/*"]
-    }
-  ],
-  "permissions": ["nativeMessaging", "activeTab"]
+  "optional_host_permissions": ["*://*/*"],
+  "permissions": ["nativeMessaging", "activeTab", "tabs"]
 }

@@ -34,18 +34,6 @@ function callBacker(
 ) {
   (async () => {
     try {
-      if (sender.tab?.url) {
-        const origin = new URL(sender.tab.url).origin + "/*";
-        console.log("Requesting permission for origin:", origin);
-        chrome.permissions.request({ origins: [origin] }, (granted) => {
-          if (!granted) {
-            throw new Error(
-              chrome.i18n.getMessage("background_permissionDenied")
-            );
-          }
-        });
-      }
-
       if (message.action) {
         let data = await sendNativeMessage(message.action, message.body ?? {});
         if (!data) {
@@ -122,4 +110,60 @@ function alertActiveTab(text: string, url: string) {
   close.onclick = () => box.remove();
   box.append(" ", link, " ", close);
   document.documentElement.appendChild(box);
+}
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status !== "complete" || !tab.active) return;
+  // Ensure scripting permission if it's optional in manifest
+
+  const has = await chrome.permissions.contains({
+    permissions: ["scripting"],
+    origins: [tab.url],
+  });
+  if (!has) {
+    console.log("no perms for this site: ", tab.url);
+    let perms = await chrome.permissions.getAll();
+    console.log("perms:", perms);
+    return;
+  }
+
+  await injectBridge(tabId);
+});
+
+async function injectBridge(tabId: number) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: () => {
+      console.log("Injecting bridge script...");
+      const messageHandler = (event: MessageEvent) => {
+        if (
+          event.source !== window ||
+          event.origin !== window.location.origin ||
+          event.data?.type !== "fromPage"
+        ) {
+          return;
+        }
+
+        chrome.runtime.sendMessage(
+          {
+            action: event.data.message.action,
+            body: event.data.message.body || {},
+          },
+          (response) => {
+            console.log("Response from content:", response);
+            window.postMessage(
+              {
+                type: "fromExtension",
+                body: response,
+                action: event.data.message.action,
+              },
+              window.location.origin
+            );
+          }
+        );
+      };
+      window.removeEventListener("message", messageHandler);
+      window.addEventListener("message", messageHandler);
+    },
+  });
 }
