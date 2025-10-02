@@ -60,6 +60,8 @@ target_include_directories(native-app PRIVATE
     "${NITGEN_SDK_INCLUDE}"
 )
 
+target_link_options(native-app PRIVATE -static-libstdc++ -static-libgcc)
+
 # Links the specific library file
 target_link_libraries(native-app PRIVATE
     "${NBIOBSP_LIB}"
