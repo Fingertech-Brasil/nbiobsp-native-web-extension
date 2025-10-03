@@ -95,6 +95,25 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME} Setup")
 set(CPACK_PACKAGE_VENDOR "${COMPANY_NAME}")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(MINGW_DLL "libwinpthread-1.dll")
+    get_filename_component(COMPILER_DIR "${CMAKE_CXX_COMPILER}" PATH)
+    # Define search paths for MinGW DLL, including Scoop and common locations
+    set(MINGW_SEARCH_PATHS
+        "${COMPILER_DIR}"              # Compiler's bin directory
+        "${COMPILER_DIR}/../bin"       # Parent bin directory
+        "${COMPILER_DIR}/../../bin"    # Grandparent bin directory (common in MinGW-w64)
+        "$ENV{USERPROFILE}/scoop/apps/mingw/current/bin" # Scoop default MinGW path
+        "C:/MinGW/bin"                 # Standard MinGW path
+        "C:/msys64/mingw64/bin"        # MSYS2 MinGW-w64 path
+    )
+    find_file(MINGW_DLL_PATH
+        NAMES ${MINGW_DLL}
+        PATHS ${MINGW_SEARCH_PATHS}
+        NO_DEFAULT_PATH
+    )    
+    install(FILES "${MINGW_DLL_PATH}" DESTINATION .)
+
+    # Include NBioBSP.dll from the NITGEN SDK
     set(NITGEN_SDK_BIN "${NITGEN_SDK_PATH}/Bin/x64")
     find_file(NBIOBSP_DLL
         NAMES "NBioBSP.dll"
