@@ -95,6 +95,15 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME} Setup")
 set(CPACK_PACKAGE_VENDOR "${COMPANY_NAME}")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(NITGEN_SDK_BIN "${NITGEN_SDK_PATH}/Bin/x64")
+    find_file(NBIOBSP_DLL
+        NAMES "NBioBSP.dll"
+        PATHS "${NITGEN_SDK_BIN}"
+        NO_DEFAULT_PATH)
+    if (NBIOBSP_DLL)
+        install(FILES "${NBIOBSP_DLL}" DESTINATION .)
+    endif()
+
     # Specify the generator (NSIS for Windows installers)
     set(CPACK_GENERATOR "NSIS")
 
@@ -128,6 +137,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         DeleteRegKey HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
         Delete '$INSTDIR\\\\native-app.exe'
         Delete '$INSTDIR\\\\nativehost-chrome.json'
+        Delete '$INSTDIR\\\\NBioBSP.dll'
         Delete '$INSTDIR\\\\NBSP2Por.dll'
         Delete '$INSTDIR\\\\native_host_log.txt'
         Delete '$INSTDIR\\\\uninstall.exe'
