@@ -7,7 +7,7 @@
       "label": "cmakeGenerate",
       "type": "shell",
       "command": "cmake",
-      "args": ["-G", "Unix Makefiles", "-B", "native-app/build"],
+      "args": ["-G", "MinGW Makefiles", "-B", "native-app/build"],
       "group": {
         "kind": "build",
         "isDefault": false
