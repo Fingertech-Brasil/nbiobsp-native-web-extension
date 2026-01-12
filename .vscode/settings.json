@@ -76,5 +76,6 @@
   "cmake.buildDirectory": "${workspaceFolder}/native-app/build",
   "cmake.generator": "Unix Makefiles",
   "cmake.configureOnOpen": false,
-  "cmake.configureOnEdit": false
+  "cmake.configureOnEdit": false,
+  "C_Cpp.default.compilerPath": "C:/msys64/mingw64/bin/g++.exe"
 }

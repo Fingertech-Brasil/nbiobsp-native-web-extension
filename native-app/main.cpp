@@ -7,6 +7,9 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <NBioAPI.h>
+#include <NBioAPI_Export.h>
+#include <algorithm>
+#include <vector>
 
 using json = nlohmann::json;
 std::ofstream log_file("native_host_log.txt", std::ios_base::app);
@@ -78,7 +81,7 @@ public:
         {
             log_file << "Failed to enumerate devices." << std::endl;
             res = {
-                {"error", 1},
+                {"error", ret},
                 {"message", "Failed to enumerate devices."},
                 {"data", {
                              {"device-count", 0},
@@ -106,17 +109,18 @@ public:
         {
             log_file << "Failed to open device." << std::endl;
             json res = {
-                {"error", 1},
+                {"error", ret},
                 {"message", "Failed to open device."}};
             return res;
         }
 
         NBioAPI_FIR_HANDLE g_hEnrolledFIR;
+        NBioAPI_FIR_HANDLE g_hAuditData;
 
         json res;
 
         // NBioaAPI Enroll
-        ret = NBioAPI_Enroll(g_hBSP, NULL, &g_hEnrolledFIR, NULL, -1, NULL, NULL);
+        ret = NBioAPI_Enroll(g_hBSP, NULL, &g_hEnrolledFIR, NULL, -1, &g_hAuditData, NULL);
         if (ret == NBioAPIERROR_NONE)
         {
             NBioAPI_FIR_TEXTENCODE g_firText;
@@ -126,22 +130,57 @@ public:
             {
                 std::string template_data = std::string(g_firText.TextFIR);
 
+                // Convert audit FIR handle to INPUT_FIR for image export
+                NBioAPI_FIR_TEXTENCODE auditText;
+                NBioAPI_EXPORT_AUDIT_DATA exportAuditData;
+                NBioAPI_RETURN auditRet = NBioAPI_GetTextFIRFromHandle(g_hBSP, g_hAuditData, &auditText, NBioAPI_FALSE);
+
+                json dataObj = {{"template", template_data}};
+
+                if (auditRet == NBioAPIERROR_NONE)
+                {
+                    NBioAPI_INPUT_FIR auditInputFir;
+                    auditInputFir.Form = NBioAPI_FIR_FORM_TEXTENCODE;
+                    auditInputFir.InputFIR.TextFIR = &auditText;
+
+                    NBioAPI_RETURN imgRet = NBioAPI_NBioBSPToImage(g_hBSP, &auditInputFir, &exportAuditData);
+                    if (imgRet == NBioAPIERROR_NONE && exportAuditData.AuditData != NULL)
+                    {
+                        std::for_each(exportAuditData.AuditData,
+                                      exportAuditData.AuditData + exportAuditData.FingerNum,
+                                      [&](NBioAPI_AUDIT_DATA &auditData)
+                                      {
+                                          // Convert image data to vector for JSON serialization
+                                          size_t dataSize = exportAuditData.ImageWidth * exportAuditData.ImageHeight;
+                                          std::vector<unsigned char> imageData(
+                                              static_cast<unsigned char *>(auditData.Image->Data),
+                                              static_cast<unsigned char *>(auditData.Image->Data) + dataSize);
+                                          dataObj["audit-data"][auditData.FingerID] = imageData;
+                                      });
+                        dataObj["audit-width"] = exportAuditData.ImageWidth;
+                        dataObj["audit-height"] = exportAuditData.ImageHeight;
+                    }
+
+                    NBioAPI_FreeTextFIR(g_hBSP, &auditText);
+                    NBioAPI_FreeExportAuditData(g_hBSP, &exportAuditData);
+                }
+
                 res = {
                     {"error", 0},
-                    {"message", "Enrollment successful."},
-                    {"data", {
-                                 {"template", template_data},
-                             }}};
+                    {"message", "Capture successful."},
+                    {"data", dataObj}};
             }
             else
             {
                 log_file << "Enrollment failed." << std::endl;
                 res = {
-                    {"error", 1},
+                    {"error", ret},
                     {"message", "Enrollment failed."}};
             }
             NBioAPI_FreeTextFIR(g_hBSP, &g_firText);
             NBioAPI_FreeFIRHandle(g_hBSP, g_hEnrolledFIR);
+            if (g_hAuditData != 0)
+                NBioAPI_FreeFIRHandle(g_hBSP, g_hAuditData);
         }
         else
         {
@@ -166,16 +205,17 @@ public:
         {
             log_file << "Failed to open device." << std::endl;
             json res = {
-                {"error", 1},
+                {"error", ret},
                 {"message", "Failed to open device."}};
             return res;
         }
 
         json res;
 
-        // NBioaAPI Enroll
+        // NBioaAPI Capture
         NBioAPI_FIR_HANDLE g_hCapturedFIR;
-        ret = NBioAPI_Capture(g_hBSP, NBioAPI_FIR_PURPOSE_VERIFY, &g_hCapturedFIR, 10000, NULL, NULL);
+        NBioAPI_FIR_HANDLE g_hAuditData;
+        ret = NBioAPI_Capture(g_hBSP, NBioAPI_FIR_PURPOSE_VERIFY, &g_hCapturedFIR, 10000, &g_hAuditData, NULL);
         if (ret == NBioAPIERROR_NONE)
         {
             NBioAPI_FIR_TEXTENCODE g_firText;
@@ -185,28 +225,58 @@ public:
             {
                 std::string template_data = std::string(g_firText.TextFIR);
 
+                // Convert audit FIR handle to INPUT_FIR for image export
+                NBioAPI_FIR_TEXTENCODE auditText;
+                NBioAPI_EXPORT_AUDIT_DATA exportAuditData;
+                NBioAPI_RETURN auditRet = NBioAPI_GetTextFIRFromHandle(g_hBSP, g_hAuditData, &auditText, NBioAPI_FALSE);
+
+                json dataObj = {{"template", template_data}};
+
+                if (auditRet == NBioAPIERROR_NONE)
+                {
+                    NBioAPI_INPUT_FIR auditInputFir;
+                    auditInputFir.Form = NBioAPI_FIR_FORM_TEXTENCODE;
+                    auditInputFir.InputFIR.TextFIR = &auditText;
+
+                    NBioAPI_RETURN imgRet = NBioAPI_NBioBSPToImage(g_hBSP, &auditInputFir, &exportAuditData);
+                    if (imgRet == NBioAPIERROR_NONE && exportAuditData.AuditData != NULL)
+                    {
+                        // Convert image data to vector for JSON serialization
+                        size_t dataSize = exportAuditData.ImageWidth * exportAuditData.ImageHeight;
+                        std::vector<unsigned char> imageData(
+                            static_cast<unsigned char *>(exportAuditData.AuditData->Image->Data),
+                            static_cast<unsigned char *>(exportAuditData.AuditData->Image->Data) + dataSize);
+                        dataObj["audit-data"] = imageData;
+                        dataObj["audit-width"] = exportAuditData.ImageWidth;
+                        dataObj["audit-height"] = exportAuditData.ImageHeight;
+                    }
+
+                    NBioAPI_FreeTextFIR(g_hBSP, &auditText);
+                    NBioAPI_FreeExportAuditData(g_hBSP, &exportAuditData);
+                }
+
                 res = {
                     {"error", 0},
                     {"message", "Capture successful."},
-                    {"data", {
-                                 {"template", template_data},
-                             }}};
+                    {"data", dataObj}};
             }
             else
             {
                 log_file << "Capture failed." << std::endl;
                 res = {
-                    {"error", 1},
+                    {"error", ret},
                     {"message", "Capture failed."}};
             }
             NBioAPI_FreeTextFIR(g_hBSP, &g_firText);
             NBioAPI_FreeFIRHandle(g_hBSP, g_hCapturedFIR);
+            if (g_hAuditData != 0)
+                NBioAPI_FreeFIRHandle(g_hBSP, g_hAuditData);
         }
         else
         {
             log_file << "Capture failed." << std::endl;
             res = {
-                {"error", 1},
+                {"error", ret},
                 {"message", "Capture failed."}};
         }
 
@@ -234,7 +304,7 @@ public:
         {
             log_file << "Failed to open device." << std::endl;
             json res = {
-                {"error", 1},
+                {"error", ret},
                 {"message", "Failed to open device."}};
             return res;
         }
@@ -253,7 +323,7 @@ public:
         {
             log_file << "Verification failed." << std::endl;
             res = {
-                {"error", 1},
+                {"error", ret},
                 {"message", "Verification failed."}};
         }
 
