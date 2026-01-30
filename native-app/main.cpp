@@ -155,7 +155,8 @@ public:
                                           std::vector<unsigned char> imageData(
                                               static_cast<unsigned char *>(auditData.Image->Data),
                                               static_cast<unsigned char *>(auditData.Image->Data) + dataSize);
-                                          dataObj["audit-data"][auditData.FingerID] = imageData;
+                                          // Indices 0-4 are right hand from thumb to pinky, 5-9 are left hand also from thumb to pinky
+                                          dataObj["audit-data"][auditData.FingerID - 1] = imageData;
                                       });
                         dataObj["audit-width"] = exportAuditData.ImageWidth;
                         dataObj["audit-height"] = exportAuditData.ImageHeight;
