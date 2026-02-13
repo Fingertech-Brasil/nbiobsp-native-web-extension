@@ -1,5 +1,7 @@
+import browser from "webextension-polyfill";
+
 async function sendMessageToExt(action: string) {
-  let res = await chrome.runtime.sendMessage({ action: action });
+  let res = await browser.runtime.sendMessage({ action: action });
   return res;
 }
 

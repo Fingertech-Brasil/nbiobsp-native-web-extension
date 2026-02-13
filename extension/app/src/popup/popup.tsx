@@ -2,8 +2,16 @@ import { render } from "preact";
 import { useState, useEffect } from "preact/hooks";
 import { Button, Fader } from "@nbiobsp-native-web-extension/shared";
 import "@nbiobsp-native-web-extension/shared/styles";
+import browser from "webextension-polyfill";
+import "./popup.css";
 
 import "../utils.js";
+
+declare global {
+  interface Window {
+    sendMessageToExt(message: string): Promise<any>;
+  }
+}
 
 export function App() {
   const [isCaptureLoading, setCaptureLoading] = useState(true);
@@ -15,9 +23,10 @@ export function App() {
 
   const [originAllowed, setOriginAllowed] = useState(false);
   const [originLoading, setOriginLoading] = useState(true);
+  const [currentOrigin, setCurrentOrigin] = useState<string | null>(null);
 
   async function getActiveOrigin(): Promise<string | undefined> {
-    const [tab] = await chrome.tabs.query({
+    const [tab] = await browser.tabs.query({
       active: true,
       lastFocusedWindow: true,
     });
@@ -62,8 +71,9 @@ export function App() {
       setOriginLoading(true);
       try {
         const origin = await getActiveOrigin();
+        setCurrentOrigin(origin || null);
         if (!origin) return setOriginAllowed(false);
-        const has = await chrome.permissions.contains({ origins: [origin] });
+        const has = await browser.permissions.contains({ origins: [origin] });
         setOriginAllowed(has);
       } finally {
         setOriginLoading(false);
@@ -81,7 +91,7 @@ export function App() {
       message = "Template: " + res.data.template;
     } catch (error) {
       console.error("Capture failed:", error);
-      message = chrome.i18n.getMessage("popup_captureFail");
+      message = browser.i18n.getMessage("popup_captureFail");
     } finally {
       setCaptureLoading(false);
       setMessage(message);
@@ -89,25 +99,37 @@ export function App() {
   };
 
   const toggleOrigin = async () => {
-    let res: boolean;
+    // Firefox requires permissions.request() to be called synchronously
+    // from the user event handler, so we use the pre-fetched origin
+    if (!currentOrigin) {
+      console.warn("No origin available for permission request");
+      return;
+    }
+    
     setOriginLoading(true);
     try {
-      const origin = await getActiveOrigin();
-      if (!origin) return;
+      const scriptingAvailable = Boolean((browser as any).scripting);
+      let res: boolean;
+      
       if (originAllowed) {
-        res = await chrome.permissions.remove({
-          permissions: ["scripting"],
-          origins: [origin],
-        });
+        res = await browser.permissions.remove(
+          scriptingAvailable
+            ? { permissions: ["scripting"], origins: [currentOrigin] }
+            : { origins: [currentOrigin] }
+        );
       } else {
-        res = await chrome.permissions.request({
-          permissions: ["scripting"],
-          origins: [origin],
-        });
+        res = await browser.permissions.request(
+          scriptingAvailable
+            ? { permissions: ["scripting"], origins: [currentOrigin] }
+            : { origins: [currentOrigin] }
+        );
       }
-      let perms = await chrome.permissions.getAll();
+      
+      let perms = await browser.permissions.getAll();
       console.log("Current permissions:", perms);
       if (res) setOriginAllowed(!originAllowed);
+    } catch (error) {
+      console.error("Permission toggle failed:", error);
     } finally {
       setOriginLoading(false);
     }
@@ -117,26 +139,26 @@ export function App() {
     <div className="flex flex-col gap-3 justify-between p-5 w-64 bg-[#010016]">
       <div>
         <h1 className="font-bold text-lg">
-          {chrome.i18n.getMessage("extName")}
+          {browser.i18n.getMessage("extName")}
         </h1>
       </div>
 
       <div className="flex flex-col gap-3 justify-between">
         <p className="text-sm">
-          {chrome.i18n.getMessage("popup_permissionDesc")}
+          {browser.i18n.getMessage("popup_permissionDesc")}
         </p>
         <Button
           id="add"
           text={
             originAllowed
-              ? chrome.i18n.getMessage("popup_revoke")
-              : chrome.i18n.getMessage("popup_grant")
+              ? browser.i18n.getMessage("popup_revoke")
+              : browser.i18n.getMessage("popup_grant")
           }
           loading={originLoading}
           onClick={toggleOrigin}
         />
         <p className="text-sm">
-          {chrome.i18n.getMessage("popup_permissionDesc2")}
+          {browser.i18n.getMessage("popup_permissionDesc2")}
         </p>
       </div>
 
@@ -144,19 +166,19 @@ export function App() {
 
       <div className="flex flex-col gap-3">
         <p className="text-sm">
-          {chrome.i18n.getMessage("popup_desc")}
+          {browser.i18n.getMessage("popup_desc")}
           <br />
-          {chrome.i18n.getMessage("popup_desc2")}
+          {browser.i18n.getMessage("popup_desc2")}
         </p>
         <h2 id="devices-detected" className="inline-flex justify-center">
           {isEnumLoading ? (
             <>
-              {chrome.i18n.getMessage("checkingDevices")}
+              {browser.i18n.getMessage("checkingDevices")}
               <Fader id="loader-dots" text=" . . . ." />
             </>
           ) : (
             <>
-              {chrome.i18n.getMessage("devicesDetected")}: {deviceCount}
+              {browser.i18n.getMessage("devicesDetected")}: {deviceCount}
             </>
           )}
         </h2>
@@ -168,7 +190,7 @@ export function App() {
         >
           <Button
             id="capture"
-            text={`${chrome.i18n.getMessage("capture")}`}
+            text={`${browser.i18n.getMessage("capture")}`}
             loading={isCaptureLoading}
             onClick={handleCapture}
           />

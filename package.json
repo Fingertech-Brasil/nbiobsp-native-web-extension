@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "build:app": "npm run build -w @nbiobsp-native-web-extension/app",
+    "build:firefox": "npm run build -w @nbiobsp-native-web-extension/app && node extension/app/scripts/prepare-firefox.mjs",
     "build:sample": "npm run build -w @nbiobsp-native-web-extension/sample",
     "build:all": "npm run build:app && npm run build:sample",
     "dev": "npm run dev -w @nbiobsp-native-web-extension/sample",

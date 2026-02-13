@@ -24,10 +24,12 @@ export default defineConfig({
       },
       output: {
         // Customize output file names
-        entryFileNames: "scripts/[name].js", // e.g., popup.js, content.js
-        chunkFileNames: "chunks/[name]-[hash].js",
+        entryFileNames: "scripts/[name].js",
+        chunkFileNames: "scripts/[name]-[hash].js", // Put chunks in scripts dir
         assetFileNames: "assets/[name].[ext]",
       },
+      // Mark webextension-polyfill as external so it doesn't get bundled
+      external: [],
     },
     // Optimize for production
     minify: "esbuild", // Minify to reduce bundle size

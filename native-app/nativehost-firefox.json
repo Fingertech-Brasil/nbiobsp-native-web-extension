@@ -1,0 +1,7 @@
+{
+  "name": "com.nbiobsp_native_web_ext",
+  "description": "Native messaging host for Simple Biometric Extension",
+  "path": "native-app.exe",
+  "type": "stdio",
+  "allowed_extensions": ["nbiobsp_native_web_ext@fingertech.com.br"]
+}

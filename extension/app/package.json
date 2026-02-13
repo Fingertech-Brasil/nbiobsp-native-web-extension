@@ -4,6 +4,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@nbiobsp-native-web-extension/shared": "*"
+    "@nbiobsp-native-web-extension/shared": "*",
+    "webextension-polyfill": "^0.12.0"
   }
 }
