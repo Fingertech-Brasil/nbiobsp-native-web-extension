@@ -13,5 +13,7 @@
 
 #app {
 	text-align: center;
-	@apply text-slate-50 h-screen;
+	@apply text-slate-50;
+	min-height: 100%;
+	height: auto;
 }

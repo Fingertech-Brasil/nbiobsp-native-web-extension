@@ -3,6 +3,7 @@ import { useState, useEffect } from "preact/hooks";
 import { Button, Fader } from "@nbiobsp-native-web-extension/shared";
 import "@nbiobsp-native-web-extension/shared/styles";
 import browser from "webextension-polyfill";
+import "./popup.css";
 
 import "../utils.js";
 
