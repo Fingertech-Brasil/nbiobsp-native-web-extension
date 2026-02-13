@@ -23,6 +23,7 @@ export function App() {
 
   const [originAllowed, setOriginAllowed] = useState(false);
   const [originLoading, setOriginLoading] = useState(true);
+  const [currentOrigin, setCurrentOrigin] = useState<string | null>(null);
 
   async function getActiveOrigin(): Promise<string | undefined> {
     const [tab] = await browser.tabs.query({
@@ -70,6 +71,7 @@ export function App() {
       setOriginLoading(true);
       try {
         const origin = await getActiveOrigin();
+        setCurrentOrigin(origin || null);
         if (!origin) return setOriginAllowed(false);
         const has = await browser.permissions.contains({ origins: [origin] });
         setOriginAllowed(has);
@@ -97,28 +99,37 @@ export function App() {
   };
 
   const toggleOrigin = async () => {
-    let res: boolean;
+    // Firefox requires permissions.request() to be called synchronously
+    // from the user event handler, so we use the pre-fetched origin
+    if (!currentOrigin) {
+      console.warn("No origin available for permission request");
+      return;
+    }
+    
     setOriginLoading(true);
     try {
-      const origin = await getActiveOrigin();
-      if (!origin) return;
       const scriptingAvailable = Boolean((browser as any).scripting);
+      let res: boolean;
+      
       if (originAllowed) {
         res = await browser.permissions.remove(
           scriptingAvailable
-            ? { permissions: ["scripting"], origins: [origin] }
-            : { origins: [origin] }
+            ? { permissions: ["scripting"], origins: [currentOrigin] }
+            : { origins: [currentOrigin] }
         );
       } else {
         res = await browser.permissions.request(
           scriptingAvailable
-            ? { permissions: ["scripting"], origins: [origin] }
-            : { origins: [origin] }
+            ? { permissions: ["scripting"], origins: [currentOrigin] }
+            : { origins: [currentOrigin] }
         );
       }
+      
       let perms = await browser.permissions.getAll();
       console.log("Current permissions:", perms);
       if (res) setOriginAllowed(!originAllowed);
+    } catch (error) {
+      console.error("Permission toggle failed:", error);
     } finally {
       setOriginLoading(false);
     }

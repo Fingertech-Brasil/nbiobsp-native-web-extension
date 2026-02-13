@@ -1,6 +1,6 @@
 # NBioBSP Native Web Extension
 
-A minimal web extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK and integrating it via a native application using the native messaging protocol (Currently Chrome and Windows only).
+A cross-browser web extension for the Fingkey Hamster biometric device, utilizing the eNBioBSP SDK and integrating it via a native application using the native messaging protocol. Supports Chrome (Manifest V3) and Firefox/Mozilla-based browsers (Manifest V2) on Windows.
 
 ## Development Requirements
 
@@ -64,24 +64,50 @@ This project aims to provide a streamlined solution for integrating biometric au
    ```
 
 2. **Build the extension:**
+
+   **For Chrome/Chromium-based browsers:**
    ```bash
    npm run build:app
    ```
+   
+   **For Firefox/Mozilla-based browsers:**
+   ```bash
+   npm run build:firefox
+   ```
+   
    **Note:** Build and reload the extension after making changes to see them.
 
-3. **Load extension in Chrome:**
+3. **Load extension in your browser:**
+
+   #### Chrome/Chromium (Edge, Brave, etc.):
    - Open `chrome://extensions/`
    - Enable **Developer mode** (toggle in top right)
    - Click **Load unpacked**
    - Select the generated `/extension/app/dist` folder
    - Copy the **Extension ID** (random letters after `ID:` on the extension page)
+   
+   #### Firefox/Mozilla-based (Zen, etc.):
+   - Open `about:debugging`
+   - Click **This Firefox**
+   - Click **Load Temporary Add-on**
+   - Navigate to `/extension/app/dist` and select `manifest.json`
+   - **Note:** The extension will be removed when Firefox closes. For permanent installation, the extension needs to be signed by Mozilla or use Firefox Developer Edition/Nightly with `xpinstall.signatures.required` set to `false` in `about:config`.
 
-4. **Update the Extension ID:**
+4. **Update the Native Messaging Configuration:**
+
+   **For Chrome:**
    - Open `native-app/nativehost-chrome.json`
    - Replace the placeholder in `allowed_origins` with your extension ID:
      ```json
      "allowed_origins": ["chrome-extension://YOUR_EXTENSION_ID_HERE/"]
      ```
+   
+   **For Firefox:**
+   - The configuration is already set in `native-app/nativehost-firefox.json` with:
+     ```json
+     "allowed_extensions": ["nbiobsp_native_web_ext@fingertech.com.br"]
+     ```
+   - This matches the `browser_specific_settings.gecko.id` in the Firefox manifest.
 
 5. **Run the sample webpage:**
    ```bash
@@ -128,17 +154,27 @@ This will generate:
 
 #### Step 3: Register the Native App
 
-**For end users:** Run the installer `NBioBSP Extension Setup.exe`
+**For end users:** Run the installer `NBioBSP Extension Setup.exe` - it automatically registers the native messaging host for both Chrome and Firefox.
 
-**For development:** Register the native app manifest directly in the registry:
+**For development:** Register the native app manifests directly in the registry:
 
+**Chrome:**
 ```powershell
 REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web_ext" /ve /t REG_SZ /d "C:\path\to\your\project\native-app\build\nativehost-chrome.json" /f
 ```
 
-**Important:** Replace `C:\path\to\your\project` with your actual absolute path. The `native-app.exe` must be in the same folder as the manifest JSON file.
+**Firefox:**
+```powershell
+REG ADD "HKCU\Software\Mozilla\NativeMessagingHosts\com.nbiobsp_native_web_ext" /ve /t REG_SZ /d "C:\path\to\your\project\native-app\build\nativehost-firefox.json" /f
+```
+
+**Important:** Replace `C:\path\to\your\project` with your actual absolute path. The `native-app.exe` must be in the same folder as the manifest JSON files.
 
 ## Testing
+
+**Note:** The testing process is the same for both Chrome and Firefox. Make sure to:
+- Use `npm run build:app` and load the extension in Chrome, OR
+- Use `npm run build:firefox` and load the extension in Firefox
 
 1. **Start the sample page:**
    ```bash
@@ -154,7 +190,42 @@ REG ADD "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.nbiobsp_native_web
    - **Capture** - Captures fingerprint for verification
    - **Verify** - Verifies captured fingerprint against enrolled template
 
-**Note:** The extension communicates with the sample page using `postMessage` API. No additional configuration is needed beyond loading the extension in Chrome.
+**Note:** The extension communicates with the sample page using `postMessage` API. No additional configuration is needed beyond loading the extension in your browser.
+
+## Browser Compatibility
+
+### Chrome vs Firefox: Technical Differences
+
+This extension uses different build targets to support both Chrome and Firefox due to their different extension APIs and manifest versions:
+
+| Feature | Chrome Build | Firefox Build |
+|---------|-------------|---------------|
+| **Manifest Version** | V3 (modern) | V2 (required for full compatibility) |
+| **Background Script** | Service Worker | Persistent Background Page |
+| **Module System** | ES Modules | IIFE (Immediately Invoked Function Expression) |
+| **API Namespace** | `chrome.*` with polyfill fallback | `browser.*` (native + polyfill) |
+| **Native Messaging Config** | `allowed_origins` (extension ID) | `allowed_extensions` (gecko.id) |
+
+### Build Process
+
+**Chrome (`npm run build:app`):**
+- Uses Vite to bundle TypeScript/Preact into ES modules
+- Generates `manifest.json` (Manifest V3)
+- Scripts load as `type="module"`
+- Service worker runs in background
+
+**Firefox (`npm run build:firefox`):**
+- Builds with Vite (same as Chrome)
+- Converts all ES modules to IIFE format (Firefox MV2 requirement)
+- Swaps to `manifest.firefox.json` → `manifest.json` (Manifest V2)
+- Injects `webextension-polyfill` for cross-browser compatibility
+- Updates popup.html to load scripts in correct order with defer attribute
+
+The conversion process ensures that:
+1. The polyfill loads first and exposes `window.browser`
+2. All imports are removed and replaced with references to the global `browser` object
+3. Module code is wrapped in IIFE to prevent scope pollution
+4. The manifest uses MV2 syntax (background.scripts array instead of service_worker)
 
 ## Troubleshooting
 
@@ -185,6 +256,7 @@ If you see additional output or different data, it indicates channel corruption 
 
 ### Extension Not Communicating with Native App
 
+**Chrome:**
 1. Verify the extension ID in `native-app/nativehost-chrome.json` matches your Chrome extension ID
 2. Check that the registry entry is correct:
    ```powershell
@@ -193,10 +265,57 @@ If you see additional output or different data, it indicates channel corruption 
 3. Ensure `native-app.exe` is in the same directory as `nativehost-chrome.json`
 4. Check the log file `native_host_log.txt` in the same directory as `native-app.exe` for errors
 
+**Firefox:**
+1. Verify the gecko ID in `extension/app/dist/manifest.json` matches the ID in `native-app/nativehost-firefox.json` (`nbiobsp_native_web_ext@fingertech.com.br`)
+2. Check that the registry entry is correct:
+   ```powershell
+   reg query "HKCU\Software\Mozilla\NativeMessagingHosts\com.nbiobsp_native_web_ext"
+   ```
+3. Ensure `native-app.exe` is in the same directory as `nativehost-firefox.json`
+4. Open the Browser Console (`Ctrl+Shift+J`) to check for native messaging errors
+5. Verify the extension was built with `npm run build:firefox` (not `build:app`)
+
+### Firefox Popup Appears Blank
+
+If the popup shows empty in Firefox:
+
+1. **Check browser console:** Right-click the extension icon → Manage Extension → Click "Inspect" button → Check Console tab for JavaScript errors
+2. **Verify correct build:** Make sure you ran `npm run build:firefox` (not `build:app`)
+3. **Check script loading:** In the console, you should see the polyfill load first, then utils, then popup
+4. **Common error messages:**
+   - `"Browser API not available"` → Polyfill didn't load or expose `window.browser`
+   - `"N is not defined"` or `"s is not defined"` → ES module conversion failed
+   - `SyntaxError` → Scripts not converted to IIFE format
+
+**To verify scripts are correct:**
+```powershell
+# All scripts should start with "(function()"
+Get-Content extension/app/dist/scripts/popup.js -Head 5
+Get-Content extension/app/dist/scripts/utils.js -Head 5
+Get-Content extension/app/dist/scripts/background.js -Head 5
+```
+
+### Firefox Extension Removed After Restart
+
+This is expected behavior for temporary add-ons in Firefox. To keep the extension installed:
+
+- **Option 1:** Load it again from `about:debugging` after each restart
+- **Option 2:** Use Firefox Developer Edition or Nightly and disable signature verification:
+  1. Go to `about:config`
+  2. Set `xpinstall.signatures.required` to `false`
+  3. Install the extension from a `.xpi` file
+- **Option 3:** Submit the extension to Mozilla Add-ons for signing (for production use)
+
 ## Additional Documentation
 
-- Chrome Native Messaging: `https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging`
-- eNBioBSP SDK Documentation: Check the SDK installation folder for API documentation
+- **Chrome Extensions:**
+  - Native Messaging: `https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging`
+  - Manifest V3: `https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3`
+- **Firefox Extensions:**
+  - Native Messaging: `https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging`
+  - Browser Extensions API: `https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions`
+  - webextension-polyfill: `https://github.com/mozilla/webextension-polyfill`
+- **eNBioBSP SDK:** Check the SDK installation folder for API documentation
 
 ## VS Code Extensions
 
@@ -206,3 +325,21 @@ Recommended VS Code extensions for development:
 - **CMake Tools** (Microsoft) - IntelliSense and build integration with CMake
 
 Configuration files are provided in `.vscode/` directory.
+## Project Configuration Files
+
+### Extension Manifests
+- **`extension/app/public/manifest.json`** - Chrome Manifest V3 (original)
+- **`extension/app/public/manifest.firefox.json`** - Firefox Manifest V2
+
+### Native Messaging Hosts
+- **`native-app/nativehost-chrome.json`** - Chrome native messaging configuration
+- **`native-app/nativehost-firefox.json`** - Firefox native messaging configuration
+
+### Build Scripts
+- **`extension/app/scripts/convert-to-iife.mjs`** - Converts ES modules to IIFE for Firefox
+- **`extension/app/scripts/prepare-firefox.mjs`** - Orchestrates Firefox build process
+
+### Key Dependencies
+- **`webextension-polyfill`** (v0.12.0) - Cross-browser API compatibility
+- **`preact`** - Lightweight React alternative for UI
+- **`vite`** (v7.2.7) - Build tool and bundler
