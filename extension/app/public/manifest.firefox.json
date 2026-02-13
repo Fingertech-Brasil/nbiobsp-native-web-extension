@@ -1,0 +1,30 @@
+{
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDesc__",
+  "default_locale": "pt_BR",
+  "version": "1.1",
+  "manifest_version": 2,
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "nbiobsp_native_web_ext@fingertech.com.br"
+    }
+  },
+  "browser_action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": { "256": "icons/icon-256.png" }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png",
+    "256": "icons/icon-256.png",
+    "512": "icons/icon-512.png"
+  },
+  "background": {
+    "scripts": ["scripts/background.js"],
+    "persistent": false
+  },
+  "optional_permissions": ["*://*/*"],
+  "permissions": ["nativeMessaging", "activeTab", "tabs"]
+}
