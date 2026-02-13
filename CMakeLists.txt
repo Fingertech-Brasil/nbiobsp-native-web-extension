@@ -68,13 +68,16 @@ target_link_libraries(native-app PRIVATE
     nlohmann_json::nlohmann_json
 )
 
-# Copy the native app manifest to the build folder during the build process
+# Copy the native app manifests to the build folder during the build process
 add_custom_command(
     TARGET native-app POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
             "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json"
             "${CMAKE_BINARY_DIR}/nativehost-chrome.json"
-    COMMENT "Copying nativehost-chrome.json to the build folder"
+    COMMAND ${CMAKE_COMMAND} -E copy
+            "${CMAKE_SOURCE_DIR}/native-app/nativehost-firefox.json"
+            "${CMAKE_BINARY_DIR}/nativehost-firefox.json"
+    COMMENT "Copying native host manifests to the build folder"
 )
 
 # ================================================
@@ -83,6 +86,7 @@ add_custom_command(
 
 install(TARGETS native-app DESTINATION .)
 install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-chrome.json" DESTINATION .)
+install(FILES "${CMAKE_SOURCE_DIR}/native-app/nativehost-firefox.json" DESTINATION .)
 install(FILES "${CMAKE_SOURCE_DIR}/native-app/resources/NBSP2Por.dll" DESTINATION .)
 
 # Set project information
@@ -145,17 +149,21 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON) # Ask about uninstalling previous versions before installation
     set(CPACK_NSIS_MODIFY_PATH OFF) # PATH modification not in original script
     
-    # Add registry entries for Add/Remove Programs
+    # Add registry entries for Chrome and Firefox native messaging
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
         WriteRegStr HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext' '' \
                     '$INSTDIR\\\\nativehost-chrome.json'
+        WriteRegStr HKCU 'Software\\\\Mozilla\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext' '' \
+                    '$INSTDIR\\\\nativehost-firefox.json'
     ")
 
     # Remove registry entries and files during uninstall
     set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
         DeleteRegKey HKCU 'Software\\\\Google\\\\Chrome\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
+        DeleteRegKey HKCU 'Software\\\\Mozilla\\\\NativeMessagingHosts\\\\com.nbiobsp_native_web_ext'
         Delete '$INSTDIR\\\\native-app.exe'
         Delete '$INSTDIR\\\\nativehost-chrome.json'
+        Delete '$INSTDIR\\\\nativehost-firefox.json'
         Delete '$INSTDIR\\\\NBioBSP.dll'
         Delete '$INSTDIR\\\\NBSP2Por.dll'
         Delete '$INSTDIR\\\\native_host_log.txt'

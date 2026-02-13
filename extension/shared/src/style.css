@@ -15,5 +15,7 @@
 	text-align: center;
 	@apply text-slate-50;
 	min-height: 100%;
+	min-width: 280px;
 	height: auto;
+	width: auto;
 }
