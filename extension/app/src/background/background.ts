@@ -115,11 +115,20 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status !== "complete" || !tab.active) return;
   // Ensure scripting permission if it's optional in manifest
 
-  const origin = tab.url ? [tab.url] : [];
+  if (!tab.url) return;
+  let originPattern: string | null = null;
+  try {
+    const url = new URL(tab.url);
+    if (!/^https?:$/.test(url.protocol)) return;
+    originPattern = `${url.origin}/*`;
+  } catch {
+    return;
+  }
+
   const has = await browser.permissions.contains(
     scripting
-      ? { permissions: ["scripting"], origins: origin }
-      : { origins: origin }
+      ? { permissions: ["scripting"], origins: [originPattern] }
+      : { origins: [originPattern] }
   );
   if (!has) {
     console.log("no perms for this site: ", tab.url);
