@@ -6,7 +6,10 @@
   "manifest_version": 2,
   "browser_specific_settings": {
     "gecko": {
-      "id": "nbiobsp_native_web_ext@fingertech.com.br"
+      "id": "nbiobsp_native_web_ext@fingertech.com.br",
+      "data_collection_permissions": {
+        "required": ["personallyIdentifyingInfo"]
+      }
     }
   },
   "browser_action": {
