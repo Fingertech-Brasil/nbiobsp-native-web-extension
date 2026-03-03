@@ -5,6 +5,150 @@ const scripting = (browser as any).scripting;
 const injectedTabs = new Set<number>();
 
 const busy: Record<string, boolean> = {};
+const FALLBACK_UPDATE_URL =
+  "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip";
+const MIN_NATIVE_VERSION = "2.0.0";
+const VERSION_CHECK_TTL_MS = 6 * 60 * 60 * 1000;
+const NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
+
+type NativeUpdateStatus = {
+  outdated: boolean;
+  nativeVersion: string;
+  requiredVersion: string;
+  updateUrl: string;
+};
+
+let lastVersionCheckAt = 0;
+let lastVersionCheckResult: NativeUpdateStatus | null = null;
+let versionCheckInFlight: Promise<NativeUpdateStatus | null> | null = null;
+let lastNotifiedVersion: string | null = null;
+let lastNotifiedAt = 0;
+
+function parseVersion(version: string) {
+  const parts = version.split(".").map((segment) => Number.parseInt(segment, 10));
+  return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+}
+
+function compareVersions(a: string, b: string) {
+  const left = parseVersion(a);
+  const right = parseVersion(b);
+
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] > right[index]) return 1;
+    if (left[index] < right[index]) return -1;
+  }
+
+  return 0;
+}
+
+async function resolveTargetTabId(sender: browser.Runtime.MessageSender) {
+  if (typeof sender.tab?.id === "number") {
+    return sender.tab.id;
+  }
+
+  const [activeTab] = await browser.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+
+  if (!activeTab?.id || !activeTab.url) return null;
+
+  try {
+    const protocol = new URL(activeTab.url).protocol;
+    if (!/^https?:$/.test(protocol)) return null;
+  } catch {
+    return null;
+  }
+
+  return activeTab.id;
+}
+
+async function getNativeUpdateStatus(force = false): Promise<NativeUpdateStatus | null> {
+  const now = Date.now();
+  const hasFreshCache =
+    !force &&
+    lastVersionCheckResult &&
+    now - lastVersionCheckAt < VERSION_CHECK_TTL_MS;
+
+  if (hasFreshCache) {
+    return lastVersionCheckResult;
+  }
+
+  if (!force && versionCheckInFlight) {
+    return versionCheckInFlight;
+  }
+
+  versionCheckInFlight = (async () => {
+    try {
+      const health = await nativeClient.request("health", {
+        extensionVersion: browser.runtime.getManifest().version,
+      });
+
+      const nativeVersion =
+        typeof health?.version === "string" && health.version.length > 0
+          ? health.version
+          : "0.0.0";
+      const updateUrl =
+        typeof health?.updateUrl === "string" && health.updateUrl.length > 0
+          ? health.updateUrl
+          : FALLBACK_UPDATE_URL;
+
+      const result: NativeUpdateStatus = {
+        outdated: compareVersions(nativeVersion, MIN_NATIVE_VERSION) < 0,
+        nativeVersion,
+        requiredVersion: MIN_NATIVE_VERSION,
+        updateUrl,
+      };
+
+      lastVersionCheckAt = Date.now();
+      lastVersionCheckResult = result;
+      return result;
+    } catch (error) {
+      console.debug("Native version check skipped:", error);
+      return null;
+    } finally {
+      versionCheckInFlight = null;
+    }
+  })();
+
+  return versionCheckInFlight;
+}
+
+function triggerNativeUpdateCheck(sender: browser.Runtime.MessageSender) {
+  getNativeUpdateStatus()
+    .then(async (status) => {
+      if (!status?.outdated) return;
+
+      const now = Date.now();
+      const onCooldown =
+        lastNotifiedVersion === status.nativeVersion &&
+        now - lastNotifiedAt < NOTIFY_COOLDOWN_MS;
+
+      if (onCooldown) return;
+
+      lastNotifiedVersion = status.nativeVersion;
+      lastNotifiedAt = now;
+
+      const message = browser.i18n.getMessage("background_updatePrompt", [
+        status.nativeVersion,
+        status.requiredVersion,
+      ]);
+
+      const targetTabId = await resolveTargetTabId(sender);
+      if (targetTabId === null) {
+        console.debug("No active tab available to show update prompt.");
+        return;
+      }
+
+      await executeScriptCompat(targetTabId, alertActiveTab, [
+        message,
+        status.updateUrl,
+      ]);
+    })
+    .catch((error) => {
+      console.debug("Native update prompt skipped:", error);
+    });
+}
 
 async function sendNativeMessage(action: string, body: any) {
   if (busy[action]) {
@@ -58,6 +202,7 @@ function callBacker(
             message: browser.i18n.getMessage("background_operationSuccessful"),
             data: { mode: activeMode },
           });
+          triggerNativeUpdateCheck(sender);
           return;
         }
 
@@ -67,6 +212,7 @@ function callBacker(
             message: browser.i18n.getMessage("background_operationSuccessful"),
             data: { mode: nativeClient.getMode() },
           });
+          triggerNativeUpdateCheck(sender);
           return;
         }
 
@@ -77,6 +223,7 @@ function callBacker(
           message: browser.i18n.getMessage("background_operationSuccessful"),
           data: data ?? {},
         });
+        triggerNativeUpdateCheck(sender);
       } else {
         console.log("No valid action found in the message: ", message);
         sendResponse({

@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.31)
 project(native-app LANGUAGES CXX)
 
-set(VERSION_MAJOR 1)
+set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
 set(COMPANY_NAME "Fingertech")
 set(FILE_DESCRIPTION "Native messaging host for Simple Biometric Extension")
 set(APP_NAME "NBioBSP Extension")
 set(PRODUCT_NAME "${APP_NAME}")
+set(NATIVE_UPDATE_URL "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_RESOURCE_FILE_LICENSE_PTBR "${CMAKE_SOURCE_DIR}/LICENSE_ptBR.txt")
 
@@ -61,6 +62,11 @@ target_include_directories(native-app PRIVATE
 )
 
 target_link_options(native-app PRIVATE -static-libstdc++ -static-libgcc)
+
+target_compile_definitions(native-app PRIVATE
+    NATIVE_APP_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+    NATIVE_UPDATE_URL="${NATIVE_UPDATE_URL}"
+)
 
 # Links the specific library file
 target_link_libraries(native-app PRIVATE

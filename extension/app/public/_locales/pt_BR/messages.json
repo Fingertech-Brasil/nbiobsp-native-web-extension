@@ -42,6 +42,17 @@
   "background_installPrompt": {
     "message": "Clique para baixar, depois instale o Setup Extensão NBioBSP"
   },
+  "background_updatePrompt": {
+    "message": "Atualização disponível para o módulo nativo (atual: $1, mínimo recomendado: $2). Clique para baixar e atualizar.",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "required": {
+        "content": "$2"
+      }
+    }
+  },
   "checkingDevices": { "message": "Verificando dispositivos" },
   "devicesDetected": { "message": "Dispositivos detectados" },
   "enum": { "message": "Enumeração" },

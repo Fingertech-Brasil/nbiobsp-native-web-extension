@@ -54,6 +54,16 @@ This repository is divided into two main components:
 
 This project aims to provide a streamlined solution for integrating biometric authentication into web applications.
 
+## Native Module Update Strategy
+
+The extension performs a non-blocking native version check using the `health` native action.
+
+- The native app returns `version` and `updateUrl` metadata.
+- The background script compares the installed native version against a minimum required version.
+- If outdated, the extension shows a soft update prompt with a download link (no biometric action is blocked).
+
+This keeps user flows working while still nudging the user to update the local native host.
+
 ## Running the project
 
 ### Getting started with the extension

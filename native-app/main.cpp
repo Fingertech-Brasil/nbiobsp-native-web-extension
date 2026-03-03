@@ -16,6 +16,14 @@
 using json = nlohmann::json;
 std::ofstream log_file("native_host_log.txt", std::ios_base::app);
 
+#ifndef NATIVE_APP_VERSION
+#define NATIVE_APP_VERSION "2.0.0"
+#endif
+
+#ifndef NATIVE_UPDATE_URL
+#define NATIVE_UPDATE_URL "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip"
+#endif
+
 json read_message()
 {
     std::uint32_t length = 0;
@@ -98,6 +106,25 @@ public:
             {"error", 0},
             {"message", "Session ended."},
             {"data", {{"persistent", false}}}};
+    }
+
+    json health(const json &body)
+    {
+        std::string extensionVersion = body.value("extensionVersion", "");
+        json data = {
+            {"version", NATIVE_APP_VERSION},
+            {"updateUrl", NATIVE_UPDATE_URL},
+            {"persistent", keep_device_open}};
+
+        if (!extensionVersion.empty())
+        {
+            data["extensionVersion"] = extensionVersion;
+        }
+
+        return {
+            {"error", 0},
+            {"message", "Health check successful."},
+            {"data", data}};
     }
 
     json enum_devices()
@@ -487,6 +514,10 @@ json dispatch_action(NBioModule &nBioModule, const json &request)
     if (action == "session_end")
     {
         return nBioModule.session_end();
+    }
+    if (action == "health")
+    {
+        return nBioModule.health(request.value("body", json::object()));
     }
 
     log_file << "Unknown command received: " << action << std::endl;
