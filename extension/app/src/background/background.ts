@@ -1,30 +1,45 @@
 import browser from "webextension-polyfill";
+import { NativeMode, nativeClient } from "./native-client";
 
-const extensionId = "com.nbiobsp_native_web_ext";
 const scripting = (browser as any).scripting;
 const injectedTabs = new Set<number>();
 
-let busy: Object = {};
+const busy: Record<string, boolean> = {};
 
 async function sendNativeMessage(action: string, body: any) {
-  let jsonMessage = {
-    action: action,
-    body: body || {},
-  };
-
   if (busy[action]) {
     throw new Error(browser.i18n.getMessage("background_busy"));
   }
+
   busy[action] = true;
   try {
-    const res: any = await browser.runtime.sendNativeMessage(
-      extensionId,
-      jsonMessage
-    );
-    return res?.data;
+    return await nativeClient.request(action, body ?? {});
   } finally {
     busy[action] = false;
   }
+}
+
+function isSetModeAction(action: string) {
+  return (
+    action === "setNativeMode" ||
+    action === "set_native_mode" ||
+    action === "native_mode_set"
+  );
+}
+
+function isGetModeAction(action: string) {
+  return (
+    action === "getNativeMode" ||
+    action === "get_native_mode" ||
+    action === "native_mode_get"
+  );
+}
+
+function normalizeMode(body: any): NativeMode {
+  const mode = body?.mode;
+  if (mode === "persistent" || body?.persistent === true) return "persistent";
+  if (mode === "oneshot" || body?.persistent === false) return "oneshot";
+  throw new Error("Invalid native mode");
 }
 
 function callBacker(
@@ -35,15 +50,32 @@ function callBacker(
   (async () => {
     try {
       if (message.action) {
-        let data = await sendNativeMessage(message.action, message.body ?? {});
-        if (!data) {
-          throw new Error(browser.i18n.getMessage("background_noDataReceived"));
+        if (isSetModeAction(message.action)) {
+          const mode = normalizeMode(message.body ?? {});
+          const activeMode = await nativeClient.setMode(mode);
+          sendResponse({
+            status: "success",
+            message: browser.i18n.getMessage("background_operationSuccessful"),
+            data: { mode: activeMode },
+          });
+          return;
         }
+
+        if (isGetModeAction(message.action)) {
+          sendResponse({
+            status: "success",
+            message: browser.i18n.getMessage("background_operationSuccessful"),
+            data: { mode: nativeClient.getMode() },
+          });
+          return;
+        }
+
+        let data = await sendNativeMessage(message.action, message.body ?? {});
         console.log("Data from native app:", data);
         sendResponse({
           status: "success",
           message: browser.i18n.getMessage("background_operationSuccessful"),
-          data: data,
+          data: data ?? {},
         });
       } else {
         console.log("No valid action found in the message: ", message);
@@ -88,6 +120,14 @@ function callBacker(
 }
 
 browser.runtime.onMessage.addListener(callBacker);
+
+if ((browser.runtime as any).onSuspend?.addListener) {
+  (browser.runtime as any).onSuspend.addListener(() => {
+    nativeClient.shutdown().catch((error: Error) => {
+      console.warn("Failed to shutdown native client cleanly:", error);
+    });
+  });
+}
 
 function alertActiveTab(text: string, url: string) {
   const box = document.createElement("div");

@@ -17,9 +17,15 @@ export function App() {
   const [isEnrollLoading, setEnrollLoading] = useState(false);
   const [isVerifyLoading, setVerifyLoading] = useState(false);
   const [isEnumLoading, setEnumLoading] = useState(false);
+  const [isGetModeLoading, setGetModeLoading] = useState(false);
+  const [isSetPersistentLoading, setSetPersistentLoading] = useState(false);
+  const [isSetOneShotLoading, setSetOneShotLoading] = useState(false);
+  const [isSessionStartLoading, setSessionStartLoading] = useState(false);
+  const [isSessionEndLoading, setSessionEndLoading] = useState(false);
   const [deviceCount, setDeviceCount] = useState(0);
   const [template, setTemplate] = useState("");
   const [message, setMessage] = useState("");
+  const [nativeMode, setNativeMode] = useState("oneshot");
 
   useEffect(() => {
     Prism.highlightAll();
@@ -38,33 +44,46 @@ export function App() {
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.source === window && event.data.type === "fromExtension") {
-        let response = event.data.body;
-        let res = "";
-        if (response["status"] === "error") {
-          console.error("Error from extension:", res);
-          res = response["message"];
+        const response = event.data.body;
+        const action = event.data.action as string;
+        let resultMessage = "";
+        if (response?.status === "error") {
+          console.error("Error from extension:", response);
+          resultMessage = response?.message || "Unknown error";
         } else {
-          if (response["data"]["device-count"]) {
-            res = `${t("devicesDetected")}: ${
-              response["data"]["device-count"]
-            }`;
-            setDeviceCount(response["data"]["device-count"]);
-          } else if (response["data"]["template"]) {
-            res = "Template generated.";
-            setTemplate(response["data"]["template"] || "");
-          } else {
-            res = response["data"]["result"]
+          const data = response?.data ?? {};
+          if (data["device-count"] !== undefined) {
+            resultMessage = `${t("devicesDetected")}: ${data["device-count"]}`;
+            setDeviceCount(data["device-count"] || 0);
+          } else if (data["template"]) {
+            resultMessage = "Template generated.";
+            setTemplate(data["template"] || "");
+          } else if (typeof data.mode === "string") {
+            setNativeMode(data.mode);
+            resultMessage = `Native mode: ${data.mode}`;
+          } else if (data.persistent !== undefined) {
+            resultMessage = data.persistent
+              ? "Native session started."
+              : "Native session ended.";
+          } else if (data["result"] !== undefined) {
+            resultMessage = data["result"]
               ? "Verification successful."
               : "Verification failed.";
+          } else {
+            resultMessage = response?.message || "Operation successful.";
           }
         }
-        setMessage(res);
-        switchActionLoading(event.data.action, false);
+        setMessage(resultMessage);
+        const actionKey =
+          action === "setNativeMode"
+            ? `setNativeMode:${response?.data?.mode || ""}`
+            : action;
+        switchActionLoading(actionKey, false);
       }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  });
+  }, [t]);
 
   function switchActionLoading(action: string, state: boolean) {
     switch (action) {
@@ -79,6 +98,21 @@ export function App() {
         break;
       case "verify":
         setVerifyLoading(state);
+        break;
+      case "getNativeMode":
+        setGetModeLoading(state);
+        break;
+      case "setNativeMode:persistent":
+        setSetPersistentLoading(state);
+        break;
+      case "setNativeMode:oneshot":
+        setSetOneShotLoading(state);
+        break;
+      case "session_start":
+        setSessionStartLoading(state);
+        break;
+      case "session_end":
+        setSessionEndLoading(state);
         break;
     }
   }
@@ -140,7 +174,59 @@ useEffect(() => {
           <div className="p-5 flex flex-col gap-3 my-auto border-2 border-[#05d7fc] rounded-md hover:text-shadow-[#05d7fc] w-full">
             <h1 className="text-xl">{t("index:title")}</h1>
             <h2 className="text-sm">{t("index:desc")}</h2>
+            <p className="text-sm">Native mode: {nativeMode}</p>
             <div className="flex flex-col gap-3 my-auto">
+              <Button
+                id="get-native-mode"
+                text="Test getNativeMode"
+                loading={isGetModeLoading}
+                onClick={() => {
+                  setGetModeLoading(true);
+                  test("getNativeMode");
+                }}
+              />
+              <Button
+                id="set-native-persistent"
+                text="Set mode persistent"
+                loading={isSetPersistentLoading}
+                onClick={() => {
+                  setSetPersistentLoading(true);
+                  sendMessageToExtension({
+                    action: "setNativeMode",
+                    body: { mode: "persistent" },
+                  });
+                }}
+              />
+              <Button
+                id="set-native-oneshot"
+                text="Set mode oneshot"
+                loading={isSetOneShotLoading}
+                onClick={() => {
+                  setSetOneShotLoading(true);
+                  sendMessageToExtension({
+                    action: "setNativeMode",
+                    body: { mode: "oneshot" },
+                  });
+                }}
+              />
+              <Button
+                id="session-start"
+                text="Test session_start"
+                loading={isSessionStartLoading}
+                onClick={() => {
+                  setSessionStartLoading(true);
+                  test("session_start");
+                }}
+              />
+              <Button
+                id="session-end"
+                text="Test session_end"
+                loading={isSessionEndLoading}
+                onClick={() => {
+                  setSessionEndLoading(true);
+                  test("session_end");
+                }}
+              />
               <Button
                 id="enum"
                 text={`${t("test")} ${t("enum")}`}

@@ -71,6 +71,35 @@ public:
         terminate();
     }
 
+    json session_start()
+    {
+        keep_device_open = true;
+        NBioAPI_RETURN ret = open_device_if_needed();
+        if (ret != NBioAPIERROR_NONE)
+        {
+            keep_device_open = false;
+            return {
+                {"error", ret},
+                {"message", "Failed to open device."}};
+        }
+
+        return {
+            {"error", 0},
+            {"message", "Session started."},
+            {"data", {{"persistent", true}}}};
+    }
+
+    json session_end()
+    {
+        keep_device_open = false;
+        close_device_if_needed(true);
+
+        return {
+            {"error", 0},
+            {"message", "Session ended."},
+            {"data", {{"persistent", false}}}};
+    }
+
     json enum_devices()
     {
         NBioAPI_RETURN ret;
@@ -105,7 +134,7 @@ public:
     json enroll()
     {
         log_file << "Enroll function called." << std::endl;
-        NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        NBioAPI_RETURN ret = open_device_if_needed();
 
         if (ret != NBioAPIERROR_NONE)
         {
@@ -194,7 +223,7 @@ public:
         }
 
         // Close Device
-        NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        close_device_if_needed();
 
         return res;
     }
@@ -202,7 +231,7 @@ public:
     json capture_for_verify()
     {
         log_file << "Capture for verify function called." << std::endl;
-        NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        NBioAPI_RETURN ret = open_device_if_needed();
 
         if (ret != NBioAPIERROR_NONE)
         {
@@ -284,7 +313,7 @@ public:
         }
 
         // Close Device
-        NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        close_device_if_needed();
         return res;
     }
 
@@ -301,7 +330,7 @@ public:
         inputFir.InputFIR.TextFIR = &textFir;
         NBioAPI_BOOL result;
 
-        NBioAPI_RETURN ret = NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        NBioAPI_RETURN ret = open_device_if_needed();
 
         if (ret != NBioAPIERROR_NONE)
         {
@@ -330,12 +359,49 @@ public:
                 {"message", "Verification failed."}};
         }
 
-        NBioAPI_CloseDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+        close_device_if_needed();
         return res;
     }
 
 private:
     NBioAPI_HANDLE g_hBSP;
+    bool keep_device_open = false;
+
+    NBioAPI_DEVICE_ID get_opened_device_id() const
+    {
+        if (g_hBSP == (NBioAPI_HANDLE)NULL)
+        {
+            return NBioAPI_DEVICE_ID_NONE;
+        }
+
+        return NBioAPI_GetOpenedDeviceID(g_hBSP);
+    }
+
+    NBioAPI_RETURN open_device_if_needed()
+    {
+        if (get_opened_device_id() != NBioAPI_DEVICE_ID_NONE)
+        {
+            return NBioAPIERROR_NONE;
+        }
+
+        return NBioAPI_OpenDevice(g_hBSP, NBioAPI_DEVICE_ID_AUTO);
+    }
+
+    void close_device_if_needed(bool force = false)
+    {
+        if (!force && keep_device_open)
+        {
+            return;
+        }
+
+        NBioAPI_DEVICE_ID deviceID = get_opened_device_id();
+        if (deviceID == NBioAPI_DEVICE_ID_NONE)
+        {
+            return;
+        }
+
+        NBioAPI_CloseDevice(g_hBSP, deviceID);
+    }
 
     void initialize()
     {
@@ -370,6 +436,8 @@ private:
 
     void terminate()
     {
+        close_device_if_needed(true);
+
         // Free FIR Handle.
         if (g_hBSP != (NBioAPI_HANDLE)NULL)
         {
@@ -386,6 +454,47 @@ private:
     }
 };
 
+json dispatch_action(NBioModule &nBioModule, const json &request)
+{
+    if (!request.contains("action") || !request["action"].is_string())
+    {
+        return {
+            {"error", 1},
+            {"message", "Invalid command"}};
+    }
+
+    const std::string action = request["action"];
+    if (action == "enum")
+    {
+        return nBioModule.enum_devices();
+    }
+    if (action == "enroll")
+    {
+        return nBioModule.enroll();
+    }
+    if (action == "capture")
+    {
+        return nBioModule.capture_for_verify();
+    }
+    if (action == "verify")
+    {
+        return nBioModule.verify(request.value("body", json::object()));
+    }
+    if (action == "session_start")
+    {
+        return nBioModule.session_start();
+    }
+    if (action == "session_end")
+    {
+        return nBioModule.session_end();
+    }
+
+    log_file << "Unknown command received: " << action << std::endl;
+    return {
+        {"error", 1},
+        {"message", "Unknown command"}};
+}
+
 int main()
 {
     log_file << "===================================" << std::endl;
@@ -394,41 +503,42 @@ int main()
     _setmode(_fileno(stdin), _O_BINARY);
     _setmode(_fileno(stdout), _O_BINARY);
 
-    json j = read_message();
-
-    json res;
-    if (!j.contains("action") || !j["action"].is_string())
+    json first_request = read_message();
+    if (first_request.empty())
     {
-        res = {
-            {"error", 1},
-            {"message", "Invalid command"}};
-        return write_message(res);
+        return 0;
     }
 
-    const std::string action = j["action"];
-    if (action == "enum")
+    // One-shot compatibility path (runtime.sendNativeMessage):
+    // process one message and exit immediately.
+    if (!first_request.contains("id"))
     {
-        res = nBioModule.enum_devices();
-    }
-    else if (action == "enroll")
-    {
-        res = nBioModule.enroll();
-    }
-    else if (action == "capture")
-    {
-        res = nBioModule.capture_for_verify();
-    }
-    else if (action == "verify")
-    {
-        res = nBioModule.verify(j.value("body", json::object()));
-    }
-    else
-    {
-        log_file << "Unknown command received: " << action << std::endl;
-        res = {
-            {"error", 1},
-            {"message", "Unknown command"}};
+        json response = dispatch_action(nBioModule, first_request);
+        return write_message(response);
     }
 
-    return write_message(res);
+    // Persistent path (runtime.connectNative): keep processing messages.
+    json request = first_request;
+    while (true)
+    {
+        json response = dispatch_action(nBioModule, request);
+
+        if (request.contains("id"))
+        {
+            response["id"] = request["id"];
+        }
+
+        if (write_message(response) != 0)
+        {
+            break;
+        }
+
+        request = read_message();
+        if (request.empty())
+        {
+            break;
+        }
+    }
+
+    return 0;
 }
