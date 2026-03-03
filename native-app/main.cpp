@@ -10,28 +10,31 @@
 #include <NBioAPI_Export.h>
 #include <algorithm>
 #include <vector>
+#include <cstdint>
+#include <filesystem>
 
 using json = nlohmann::json;
 std::ofstream log_file("native_host_log.txt", std::ios_base::app);
 
 json read_message()
 {
-    unsigned int length = 0;
-
-    // read the first four bytes
-    for (int i = 0; i < 4; i++)
+    std::uint32_t length = 0;
+    if (fread(&length, 1, sizeof(length), stdin) != sizeof(length))
     {
-        unsigned int read_char = getchar();
-        length = length | (read_char << i * 8);
+        return json::object();
     }
 
-    // read the message from the extension
-    std::string message = "";
-    for (int i = 0; i < length; i++)
+    std::string message(length, '\0');
+    if (length > 0 && fread(message.data(), 1, length, stdin) != length)
     {
-        message += getchar();
+        return json::object();
     }
-    json j = json::parse(message);
+
+    json j = json::parse(message, nullptr, false);
+    if (j.is_discarded())
+    {
+        return json::object();
+    }
     log_file << "Received message: " << j << std::endl;
 
     return j;
@@ -40,18 +43,17 @@ json read_message()
 int write_message(json j)
 {
     std::string s = j.dump();
-    unsigned int len = s.length();
-
-    // send back the 4 bytes with the length of the message
-    printf("%c%c%c%c", (char)(len & 0xff),
-           (char)(len >> 8 & 0xff),
-           (char)(len >> 16 & 0xff),
-           (char)(len >> 24 & 0xff));
+    std::uint32_t len = static_cast<std::uint32_t>(s.length());
 
     log_file << "Sending response: " << s.c_str() << std::endl;
     log_file << "Response length: " << len << std::endl;
-    // output the message
-    printf("%s", s.c_str());
+
+    fwrite(&len, 1, sizeof(len), stdout);
+    if (len > 0)
+    {
+        fwrite(s.data(), 1, len, stdout);
+    }
+    fflush(stdout);
 
     return 0;
 }
@@ -394,23 +396,31 @@ int main()
 
     json j = read_message();
 
-    // actions hashmap
-    std::unordered_map<std::string, std::function<json()>> actions = {
-        {"enum", [&]()
-         { return nBioModule.enum_devices(); }},
-        {"enroll", [&]()
-         { return nBioModule.enroll(); }},
-        {"capture", [&]()
-         { return nBioModule.capture_for_verify(); }},
-        {"verify", [&]()
-         { return nBioModule.verify(j["body"]); }}};
-
-    std::string action = j["action"];
     json res;
-    // lookup and execute action
-    if (actions.find(action) != actions.end())
+    if (!j.contains("action") || !j["action"].is_string())
     {
-        res = actions[action]();
+        res = {
+            {"error", 1},
+            {"message", "Invalid command"}};
+        return write_message(res);
+    }
+
+    const std::string action = j["action"];
+    if (action == "enum")
+    {
+        res = nBioModule.enum_devices();
+    }
+    else if (action == "enroll")
+    {
+        res = nBioModule.enroll();
+    }
+    else if (action == "capture")
+    {
+        res = nBioModule.capture_for_verify();
+    }
+    else if (action == "verify")
+    {
+        res = nBioModule.verify(j.value("body", json::object()));
     }
     else
     {

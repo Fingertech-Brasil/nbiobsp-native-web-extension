@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 
 const extensionId = "com.nbiobsp_native_web_ext";
 const scripting = (browser as any).scripting;
+const injectedTabs = new Set<number>();
 
 let busy: Object = {};
 
@@ -62,12 +63,19 @@ function callBacker(
             browser.i18n.getMessage("background_installPrompt"),
             url,
           ]);
+          sendResponse({
+            status: "error",
+            message: browser.i18n.getMessage("background_installPrompt"),
+            url: url,
+          });
+          return;
         } else {
           sendResponse({
             status: "error",
             message: browser.i18n.getMessage("background_installPrompt"),
             url: url,
           });
+          return;
         }
       }
       sendResponse({
@@ -112,6 +120,11 @@ function alertActiveTab(text: string, url: string) {
 }
 
 browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status === "loading") {
+    injectedTabs.delete(tabId);
+    return;
+  }
+
   if (changeInfo.status !== "complete" || !tab.active) return;
   // Ensure scripting permission if it's optional in manifest
 
@@ -137,7 +150,14 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     return;
   }
 
+  if (injectedTabs.has(tabId)) return;
+
   await injectBridge(tabId);
+  injectedTabs.add(tabId);
+});
+
+browser.tabs.onRemoved.addListener((tabId) => {
+  injectedTabs.delete(tabId);
 });
 
 async function injectBridge(tabId: number) {
@@ -145,7 +165,12 @@ async function injectBridge(tabId: number) {
     console.log("Injecting bridge script...");
     const runtime =
       typeof browser !== "undefined" ? browser.runtime : chrome.runtime;
-    (window as any).messageHandler = (event: MessageEvent) => {
+    const anyWindow = window as any;
+    if (anyWindow.messageHandler) {
+      window.removeEventListener("message", anyWindow.messageHandler);
+    }
+
+    anyWindow.messageHandler = (event: MessageEvent) => {
       if (
         event.source !== window ||
         event.origin !== window.location.origin ||
@@ -194,7 +219,7 @@ async function injectBridge(tabId: number) {
         );
       }
     };
-    window.addEventListener("message", (window as any).messageHandler);
+    window.addEventListener("message", anyWindow.messageHandler);
   });
 }
 
