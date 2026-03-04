@@ -9,7 +9,7 @@ import "../utils.js";
 
 declare global {
   interface Window {
-    sendMessageToExt(message: string): Promise<any>;
+    sendMessageToExt(action: string, body?: any): Promise<any>;
   }
 }
 
@@ -20,6 +20,8 @@ export function App() {
   const [deviceCount, setDeviceCount] = useState(0);
   const [installUrl, setinstallUrl] = useState("");
   const [message, setMessage] = useState("");
+  const [updateUrl, setUpdateUrl] = useState("");
+  const [showUpdateButton, setShowUpdateButton] = useState(false);
 
   const [originAllowed, setOriginAllowed] = useState(false);
   const [originLoading, setOriginLoading] = useState(true);
@@ -38,6 +40,24 @@ export function App() {
   }
 
   useEffect(() => {
+    const checkNativeUpdate = async () => {
+      try {
+        const response = await window.sendMessageToExt("getNativeUpdateStatus", {
+          force: true,
+        });
+        const status = response?.data;
+        const isOutdated = Boolean(status?.outdated);
+        const nextUrl =
+          typeof status?.updateUrl === "string" && status.updateUrl.length > 0
+            ? status.updateUrl
+            : "";
+        setShowUpdateButton(isOutdated && Boolean(nextUrl));
+        setUpdateUrl(nextUrl);
+      } catch (error) {
+        console.debug("Failed to check native update status:", error);
+      }
+    };
+
     // Function to enumerate devices
     const checkDevices = async () => {
       try {
@@ -64,6 +84,7 @@ export function App() {
     };
 
     checkDevices();
+    checkNativeUpdate();
   }, []); // The empty array [] ensures this effect runs only once
 
   useEffect(() => {
@@ -135,6 +156,11 @@ export function App() {
     }
   };
 
+  const handleNativeUpdate = async () => {
+    if (!updateUrl) return;
+    await browser.tabs.create({ url: updateUrl });
+  };
+
   return (
     <div className="flex flex-col gap-3 justify-between p-5 w-64 bg-[#010016]">
       <div>
@@ -194,6 +220,13 @@ export function App() {
             loading={isCaptureLoading}
             onClick={handleCapture}
           />
+          {showUpdateButton && (
+            <Button
+              id="update-native"
+              text={browser.i18n.getMessage("popup_updateNative")}
+              onClick={handleNativeUpdate}
+            />
+          )}
         </section>
       </div>
       {hostInstalled && (

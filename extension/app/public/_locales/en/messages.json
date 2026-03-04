@@ -16,6 +16,7 @@
   },
   "popup_captureFail": { "message": "Capture failed" },
   "popup_enrollFail": { "message": "Enroll failed" },
+  "popup_updateNative": { "message": "Download update" },
   "popup_permissionDesc": {
     "message": "This extension requires explicit permission to run on a website. Click the button below to grant or revoke the permission on this website."
   },

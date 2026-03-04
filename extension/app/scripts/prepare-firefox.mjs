@@ -5,6 +5,43 @@ import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 
+function validatePopupBrowserAlias(popupCode) {
+  const wrapperAliasMatch = popupCode.match(
+    /const\s+([A-Za-z_$][\w$]*)\s*=\s*\(typeof window !== 'undefined' && window\.browser\)\s*\|\|\s*null\s*;/
+  );
+
+  if (!wrapperAliasMatch) {
+    throw new Error(
+      "Firefox build guard: popup.js wrapper alias was not found after conversion."
+    );
+  }
+
+  const wrapperAlias = wrapperAliasMatch[1];
+  const apiRefMatches = [
+    ...popupCode.matchAll(
+      /(?:^|[^\w$])([A-Za-z_$][\w$]*)\.(?:runtime|i18n|tabs|permissions)(?=\b|[^\w$])/g
+    ),
+  ];
+  const apiRefAliases = [...new Set(apiRefMatches.map((match) => match[1]))];
+
+  if (apiRefAliases.length === 0) {
+    throw new Error(
+      "Firefox build guard: no browser API references found in popup.js after conversion."
+    );
+  }
+
+  const invalidAliases = apiRefAliases.filter((alias) => alias !== wrapperAlias);
+  if (invalidAliases.length > 0) {
+    throw new Error(
+      `Firefox build guard: popup.js uses mismatched browser aliases (${invalidAliases.join(
+        ", "
+      )}) while wrapper alias is '${wrapperAlias}'.`
+    );
+  }
+
+  console.log(`✓ Popup browser alias validated: ${wrapperAlias}`);
+}
+
 // First, convert ES modules to IIFE for MV2 compatibility
 console.log("Converting ES modules to IIFE...");
 await execAsync("node extension/app/scripts/convert-to-iife.mjs");
@@ -46,7 +83,11 @@ console.log("✓ Firefox manifest copied to", manifestDest);
 // Also update popup HTML to load scripts in correct order (polyfill first)
 if (polyfillChunk) {
   const popupHtmlPath = join(distDir, "src", "popup", "popup.html");
+  const popupScriptPath = join(distDir, "scripts", "popup.js");
   let popupHtml = await readFile(popupHtmlPath, "utf-8");
+  const popupScript = await readFile(popupScriptPath, "utf-8");
+
+  validatePopupBrowserAlias(popupScript);
   
   // Check if already modified
   if (!popupHtml.includes(`scripts/${polyfillChunk}`)) {

@@ -179,6 +179,14 @@ function isGetModeAction(action: string) {
   );
 }
 
+function isGetNativeUpdateStatusAction(action: string) {
+  return (
+    action === "getNativeUpdateStatus" ||
+    action === "get_native_update_status" ||
+    action === "native_update_status_get"
+  );
+}
+
 function normalizeMode(body: any): NativeMode {
   const mode = body?.mode;
   if (mode === "persistent" || body?.persistent === true) return "persistent";
@@ -213,6 +221,22 @@ function callBacker(
             data: { mode: nativeClient.getMode() },
           });
           triggerNativeUpdateCheck(sender);
+          return;
+        }
+
+        if (isGetNativeUpdateStatusAction(message.action)) {
+          const status = await getNativeUpdateStatus(message.body?.force === true);
+          sendResponse({
+            status: "success",
+            message: browser.i18n.getMessage("background_operationSuccessful"),
+            data:
+              status ?? {
+                outdated: false,
+                nativeVersion: "unknown",
+                requiredVersion: MIN_NATIVE_VERSION,
+                updateUrl: FALLBACK_UPDATE_URL,
+              },
+          });
           return;
         }
 

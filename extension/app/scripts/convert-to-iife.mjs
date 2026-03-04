@@ -32,7 +32,9 @@ if (polyfillCode.trim().startsWith("(function()")) {
 
 // Extract what's being exported from polyfill (e.g., export{U as b})
 // Handle minified code with newlines between tokens
-const exportMatch = polyfillCode.match(/export\s*\{\s*(\w+)\s+as\s+\w+\s*\}/s);
+const exportMatch = polyfillCode.match(
+  /export\s*\{\s*([A-Za-z_$][\w$]*)\s+as\s+[A-Za-z_$][\w$]*\s*\}/s
+);
 const exportedVar = exportMatch ? exportMatch[1] : null;
 
 if (!exportedVar) {
@@ -67,13 +69,17 @@ polyfillCode = `
 `;
 
 // Function to extract the imported identifier and replace with window.browser
-function replaceImportWithGlobal(code) {
+function replaceImportWithGlobal(code, fileName) {
   // Match: import{b as N}from"./browser-polyfill-XXX.js";
-  const importMatch = code.match(/import\s*\{[^}]*\s+as\s+(\w+)\s*\}\s*from\s*["'][^"']*browser-polyfill[^"']*["']\s*;?/);
+  const importMatch = code.match(
+    /import\s*\{[^}]*\s+as\s+([A-Za-z_$][\w$]*)\s*\}\s*from\s*["'][^"']*browser-polyfill[^"']*["']\s*;?/
+  );
   const localVar = importMatch ? importMatch[1] : null;
-  
+
   if (!localVar) {
-    console.warn("⚠ Could not detect browser import in this file, using default 'browser'");
+    throw new Error(
+      `Could not detect browser polyfill import alias in ${fileName}. Aborting Firefox conversion.`
+    );
   }
   
   // Remove all import statements
@@ -84,11 +90,11 @@ function replaceImportWithGlobal(code) {
     .replace(/import\s*\(\s*["'][^"']+["']\s*\)/g, "Promise.resolve({})")
     .replace(/import\s*["'][^"']+["']\s*;?/g, "");
   
-  return { code, localVar: localVar || 'browser' };
+  return { code, localVar };
 }
 
 // Process background.js
-let bgResult = replaceImportWithGlobal(backgroundCode);
+let bgResult = replaceImportWithGlobal(backgroundCode, "background.js");
 backgroundCode = `
 (function() {
   'use strict';
@@ -102,7 +108,7 @@ backgroundCode = `
 `;
 
 // Process popup.js
-let popupResult = replaceImportWithGlobal(popupCode);
+let popupResult = replaceImportWithGlobal(popupCode, "popup.js");
 console.log(`  Detected popup.js browser variable: ${popupResult.localVar}`);
 popupCode = `
 (function() {
@@ -117,7 +123,7 @@ popupCode = `
 `;
 
 // Process utils.js
-let utilsResult = replaceImportWithGlobal(utilsCode);
+let utilsResult = replaceImportWithGlobal(utilsCode, "utils.js");
 console.log(`  Detected utils.js browser variable: ${utilsResult.localVar}`);
 utilsCode = `
 (function() {
