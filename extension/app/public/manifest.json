@@ -2,7 +2,7 @@
   "name": "__MSG_extName__",
   "description": "__MSG_extDesc__",
   "default_locale": "pt_BR",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
   "action": {
@@ -21,7 +21,6 @@
     "service_worker": "scripts/background.js",
     "type": "module"
   },
-  "optional_permissions": ["scripting"],
   "optional_host_permissions": ["*://*/*"],
-  "permissions": ["nativeMessaging", "activeTab", "tabs"]
+  "permissions": ["nativeMessaging", "activeTab", "tabs", "scripting"]
 }

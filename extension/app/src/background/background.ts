@@ -336,10 +336,42 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     return;
   }
 
-  if (changeInfo.status !== "complete" || !tab.active) return;
-  // Ensure scripting permission if it's optional in manifest
+  if (changeInfo.status !== "complete") return;
 
-  if (!tab.url) return;
+  await tryInjectBridge(tabId, tab);
+});
+
+browser.tabs.onActivated.addListener(async ({ tabId }) => {
+  try {
+    const tab = await browser.tabs.get(tabId);
+    await tryInjectBridge(tabId, tab);
+  } catch (error) {
+    console.debug("Failed to inject bridge on tab activation:", error);
+  }
+});
+
+if ((browser.runtime as any).onStartup?.addListener) {
+  (browser.runtime as any).onStartup.addListener(() => {
+    bootstrapBridgeInjection().catch((error: Error) => {
+      console.debug("Bridge bootstrap on startup skipped:", error);
+    });
+  });
+}
+
+browser.runtime.onInstalled.addListener(() => {
+  bootstrapBridgeInjection().catch((error: Error) => {
+    console.debug("Bridge bootstrap on install skipped:", error);
+  });
+});
+
+browser.tabs.onRemoved.addListener((tabId) => {
+  injectedTabs.delete(tabId);
+});
+
+async function tryInjectBridge(tabId: number, tab?: browser.Tabs.Tab) {
+  if (injectedTabs.has(tabId)) return;
+  if (!tab?.url) return;
+
   let originPattern: string | null = null;
   try {
     const url = new URL(tab.url);
@@ -349,27 +381,31 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     return;
   }
 
-  const has = await browser.permissions.contains(
-    scripting
-      ? { permissions: ["scripting"], origins: [originPattern] }
-      : { origins: [originPattern] }
-  );
+  const has = await browser.permissions.contains({ origins: [originPattern] });
   if (!has) {
     console.log("no perms for this site: ", tab.url);
-    let perms = await browser.permissions.getAll();
+    const perms = await browser.permissions.getAll();
     console.log("perms:", perms);
     return;
   }
 
-  if (injectedTabs.has(tabId)) return;
-
   await injectBridge(tabId);
   injectedTabs.add(tabId);
-});
+}
 
-browser.tabs.onRemoved.addListener((tabId) => {
-  injectedTabs.delete(tabId);
-});
+async function bootstrapBridgeInjection() {
+  const tabs = await browser.tabs.query({});
+
+  for (const tab of tabs) {
+    if (typeof tab.id !== "number") continue;
+
+    try {
+      await tryInjectBridge(tab.id, tab);
+    } catch (error) {
+      console.debug("Bridge bootstrap inject skipped for tab", tab.id, error);
+    }
+  }
+}
 
 async function injectBridge(tabId: number) {
   await executeScriptCompat(tabId, () => {
@@ -390,39 +426,84 @@ async function injectBridge(tabId: number) {
         return;
       }
 
+      const action = event.data?.message?.action;
+      const body = event.data?.message?.body || {};
+
+      if (!action) {
+        window.postMessage(
+          {
+            type: "fromExtension",
+            action: "unknown",
+            body: {
+              status: "error",
+              message: "Invalid action",
+            },
+          },
+          window.location.origin
+        );
+        return;
+      }
+
       if (typeof browser !== "undefined") {
         (runtime as any)
           .sendMessage({
-            action: event.data.message.action,
-            body: event.data.message.body || {},
+            action,
+            body,
           })
           .then((response: any) => {
             console.log("Response from content:", response);
             window.postMessage(
               {
                 type: "fromExtension",
-                body: response,
-                action: event.data.message.action,
+                body:
+                  response ?? {
+                    status: "error",
+                    message: "Empty response from extension background",
+                  },
+                action,
               },
               window.location.origin
             );
           })
           .catch((err: Error) => {
             console.error("Message error:", err);
+            window.postMessage(
+              {
+                type: "fromExtension",
+                body: {
+                  status: "error",
+                  message: err?.message || "Failed to contact extension",
+                },
+                action,
+              },
+              window.location.origin
+            );
           });
       } else {
         (runtime as any).sendMessage(
           {
-            action: event.data.message.action,
-            body: event.data.message.body || {},
+            action,
+            body,
           },
           (response: any) => {
+            const runtimeError = (runtime as any).lastError;
             console.log("Response from content:", response);
             window.postMessage(
               {
                 type: "fromExtension",
-                body: response,
-                action: event.data.message.action,
+                body:
+                  runtimeError != null
+                    ? {
+                        status: "error",
+                        message:
+                          runtimeError.message ||
+                          "Failed to contact extension background",
+                      }
+                    : response ?? {
+                        status: "error",
+                        message: "Empty response from extension background",
+                      },
+                action,
               },
               window.location.origin
             );

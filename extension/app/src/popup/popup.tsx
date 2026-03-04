@@ -129,21 +129,12 @@ export function App() {
     
     setOriginLoading(true);
     try {
-      const scriptingAvailable = Boolean((browser as any).scripting);
       let res: boolean;
       
       if (originAllowed) {
-        res = await browser.permissions.remove(
-          scriptingAvailable
-            ? { permissions: ["scripting"], origins: [currentOrigin] }
-            : { origins: [currentOrigin] }
-        );
+        res = await browser.permissions.remove({ origins: [currentOrigin] });
       } else {
-        res = await browser.permissions.request(
-          scriptingAvailable
-            ? { permissions: ["scripting"], origins: [currentOrigin] }
-            : { origins: [currentOrigin] }
-        );
+        res = await browser.permissions.request({ origins: [currentOrigin] });
       }
       
       let perms = await browser.permissions.getAll();
