@@ -7,7 +7,7 @@ const injectedTabs = new Set<number>();
 const busy: Record<string, boolean> = {};
 const FALLBACK_UPDATE_URL =
   "https://fingertech.com.br/download/Nitgen/Hamster/Windows/NBioBSP Extension Setup.zip";
-const MIN_NATIVE_VERSION = "2.0.0";
+const MIN_NATIVE_VERSION = "2.1.0";
 const VERSION_CHECK_TTL_MS = 6 * 60 * 60 * 1000;
 const NOTIFY_COOLDOWN_MS = 10 * 60 * 1000;
 

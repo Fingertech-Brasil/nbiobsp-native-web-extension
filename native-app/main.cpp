@@ -12,12 +12,14 @@
 #include <vector>
 #include <cstdint>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 
 using json = nlohmann::json;
 std::ofstream log_file("native_host_log.txt", std::ios_base::app);
 
 #ifndef NATIVE_APP_VERSION
-#define NATIVE_APP_VERSION "2.0.0"
+#define NATIVE_APP_VERSION "2.1.0"
 #endif
 
 #ifndef NATIVE_UPDATE_URL
@@ -172,6 +174,12 @@ public:
             return res;
         }
 
+        json preflight = preflight_interactive_operation("enroll");
+        if (!preflight.empty())
+        {
+            return preflight;
+        }
+
         NBioAPI_FIR_HANDLE g_hEnrolledFIR;
         NBioAPI_FIR_HANDLE g_hAuditData;
 
@@ -267,6 +275,12 @@ public:
                 {"error", ret},
                 {"message", "Failed to open device."}};
             return res;
+        }
+
+        json preflight = preflight_interactive_operation("capture");
+        if (!preflight.empty())
+        {
+            return preflight;
         }
 
         json res;
@@ -368,6 +382,12 @@ public:
             return res;
         }
 
+        json preflight = preflight_interactive_operation("verify");
+        if (!preflight.empty())
+        {
+            return preflight;
+        }
+
         ret = NBioAPI_Verify(g_hBSP, &inputFir, &result, NULL, 10000, NULL, NULL);
         if (ret == NBioAPIERROR_NONE)
         {
@@ -402,6 +422,66 @@ private:
         }
 
         return NBioAPI_GetOpenedDeviceID(g_hBSP);
+    }
+
+    bool verify_device_physical_presence() const
+    {
+        NBioAPI_UINT32 nDeviceNum = 0;
+        NBioAPI_DEVICE_ID *pDeviceList = nullptr;
+        NBioAPI_RETURN ret = NBioAPI_EnumerateDevice(g_hBSP, &nDeviceNum, &pDeviceList);
+        return (ret == NBioAPIERROR_NONE && nDeviceNum > 0);
+    }
+
+    json preflight_interactive_operation(const char *op_name)
+    {
+        NBioAPI_BOOL finger_exist = NBioAPI_FALSE;
+        NBioAPI_RETURN check_ret = NBioAPI_CheckFinger(g_hBSP, &finger_exist);
+        if (check_ret == NBioAPIERROR_NONE)
+        {
+            return json::object();
+        }
+
+        log_file << "Preflight check failed before " << op_name
+                 << ". ret=" << check_ret << std::endl;
+
+        if (keep_device_open)
+        {
+            json res = {
+                {"error", check_ret},
+                {"message", "Persistent preflight failed. Switching to one-shot."},
+                {"data", {
+                    {"persistent", false}
+                }}};
+
+            log_file << "[MODE_SWITCH] Preflight failed in persistent mode before "
+                     << op_name << ". Disabling persistence, switching to one-shot behavior."
+                     << std::endl;
+
+            keep_device_open = false;
+            close_device_if_needed(true);
+            return res;
+        }
+
+        if (!verify_device_physical_presence())
+        {
+            json res = {
+                {"error", check_ret},
+                {"message", "Device is not connected."}};
+
+            if (keep_device_open)
+            {
+                log_file << "[MODE_SWITCH] Device disconnected in persistent mode before "
+                         << op_name << ". Disabling persistence, switching to one-shot behavior."
+                         << std::endl;
+                keep_device_open = false;
+                res["data"] = {{"persistent", false}};
+            }
+
+            close_device_if_needed(true);
+            return res;
+        }
+
+        return json::object();
     }
 
     NBioAPI_RETURN open_device_if_needed()
@@ -559,9 +639,64 @@ int main()
             response["id"] = request["id"];
         }
 
+        // Check if we switched out of persistent mode due to device disconnect.
+        // If so, finalize persistence and retry this action once in one-shot mode.
+        bool exit_after_response = false;
+        if (response.contains("data") && response["data"].contains("persistent") 
+            && response["data"]["persistent"] == false 
+            && response["error"] != 0)
+        {
+            json pre_retry_notice = {
+                {"action", "mode_notice"},
+                {"status", "warning"},
+                {"message", "Falha no CheckFinger detectada. Vamos alternar para o modo padrao e tentar novamente."},
+                {"data", {
+                    {"persistent", false},
+                    {"modeSwitchReason", "reader_removed"},
+                    {"modeSwitched", true},
+                    {"nextMode", "oneshot"},
+                    {"phase", "pre_retry"}
+                }}
+            };
+
+            if (request.contains("id"))
+            {
+                pre_retry_notice["id"] = request["id"];
+            }
+
+            if (write_message(pre_retry_notice) != 0)
+            {
+                break;
+            }
+
+            log_file << "[MODE_SWITCH] Finalizing persistent session before one-shot retry." << std::endl;
+            nBioModule.session_end();
+
+            json one_shot_request = request;
+            if (one_shot_request.contains("id"))
+            {
+                one_shot_request.erase("id");
+            }
+
+            Sleep(500);
+            response = dispatch_action(nBioModule, one_shot_request);
+            if (request.contains("id"))
+            {
+                response["id"] = request["id"];
+            }
+
+            log_file << "[MODE_SWITCH] One-shot retry executed. Exiting persistent connection." << std::endl;
+            exit_after_response = true;
+        }
+
         if (write_message(response) != 0)
         {
             break;
+        }
+
+        if (exit_after_response)
+        {
+            break; // Exit loop to switch to one-shot behavior
         }
 
         request = read_message();
